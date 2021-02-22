@@ -30,20 +30,24 @@ def curses_end():
 
 def menu_hotkey_option(choices: list) -> list:
     hotkey_list = []
+
     for opt in choices:
+
+        # Walking the string
         for x in opt:
-            if len(hotkey_list) > 0:
-                n = 0
-                print(f'{n} < {len(hotkey_list)} and {x} != {hotkey_list[n][1]}')
-                while n < len(hotkey_list) and x != hotkey_list[n][1]:
 
-                    hotkey_list.append([opt, x, opt.find(x)])
-
-                    n += 1
-                break
-            else:
+            # Empty list => I've just add.
+            if len(hotkey_list) == 0:
                 hotkey_list.append([opt, x, opt.find(x)])
                 break
+            else:
+                # Stackoverflow to the rescue.
+                # https://stackoverflow.com/questions/13728023/check-if-a-sublist-contains-an-item
+                if any(x in i for i in hotkey_list):
+                    continue
+                else:       # Add if not exist.
+                    hotkey_list.append([opt, x, opt.find(x)])
+                    break
 
     return hotkey_list
 
@@ -53,7 +57,6 @@ def test_menu_hotkey_option(choices):
 
 
 def menu_vertical(choices: list):
-
     # Finding the max length between the menu options.
     max_length = 0
     for x in choices:
