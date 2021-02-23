@@ -31,6 +31,7 @@ def curses_end():
 def menu_hotkey_option(choices: list) -> list:
     hotkey_list = []
 
+    # Walking the choices list.
     for opt in choices:
 
         # Walking the string
@@ -64,7 +65,7 @@ def menu_vertical(choices: list):
             max_length = len(x)
 
     # Discovering the hotkeys
-    hotkey_dict = menu_hotkey_option(choices)
+    hotkey_list = menu_hotkey_option(choices)
 
     # Drawing the window
     window_menu = curses.newwin(len(choices) + 3, max_length + 5, 5, 5)
@@ -72,11 +73,13 @@ def menu_vertical(choices: list):
     window_menu.bkgd(' ', curses.color_pair(2))
 
     row = 0
+
     for x in choices:
         window_menu.addstr(row + 2, 1, " " + x.ljust(max_length + 1), curses.color_pair(2))
+
         window_menu.addstr(row + 2,
-                           hotkey_dict[x][1] + 2,
-                           x[hotkey_dict[x][1]:hotkey_dict[x][1] + 1],
+                           hotkey_list[row][2] + 2,
+                           x[hotkey_list[row][2]:hotkey_list[row][2] + 1],
                            curses.color_pair(1))
         row += 1
 
@@ -86,8 +89,8 @@ def menu_vertical(choices: list):
 
 if __name__ == '__main__':
     myops = ["Acerca de", "Creditos", "Ayuda"]
-    test_menu_hotkey_option(myops)
-    # curses.wrapper(curses_init)
-    # menu_vertical(myops)
+    # test_menu_hotkey_option(myops)
+    curses.wrapper(curses_init)
+    menu_vertical(myops)
 
 sys.exit(0)
