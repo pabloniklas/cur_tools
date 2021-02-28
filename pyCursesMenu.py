@@ -70,7 +70,7 @@ def status_bar(stdscr: object, txt: str):
     height, width = stdscr.getmaxyx()
 
     stdscr.addstr(height - 1, 0, txt, curses.color_pair(2))
-    stdscr.addstr(height - 1, len(txt) - 1 , " " * (width - len(txt)), curses.color_pair(2))
+    stdscr.addstr(height - 1, len(txt) - 1, " " * (width - len(txt)), curses.color_pair(2))
     stdscr.refresh()
 
 
@@ -126,8 +126,8 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
 
         status_bar(stdscr, "Press 'ESC' to exit | STATUS BAR | pressed: {}".format(pressed))
 
-        # 001000010 = 66
-        # 100000010 = 258
+        # getch(): 001000010 = 66
+        # curses.KEY_DOWN: 100000010 = 258
 
         if pressed == 66:  # curses.KEY_DOWN:
             window_menu.addstr(highlight_option + 2, 1, " " +
@@ -144,8 +144,8 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
             if highlight_option >= len(choices) - 1:
                 highlight_option = len(choices) - 1
 
-        # 001000001 = 65
-        # 100000011 = 259
+        # getch(): 001000001 = 65
+        # curses.KEY_UP: 100000011 = 259
 
         if pressed == 65:  # curses.KEY_UP:
             window_menu.addstr(highlight_option + 2, 1, " " +
@@ -178,7 +178,12 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
     return highlight_option + 1
 
 
-def horizontal_menu(stdscr: object, options: list):
+def horizontal_menu(stdscr: object, options_dict: dict):
+    menubar_options = []
+
+    for k in options_dict:
+        menubar_options.append(k)
+
     height, width = stdscr.getmaxyx()
 
     list_cols = []
@@ -186,10 +191,10 @@ def horizontal_menu(stdscr: object, options: list):
     list_cols.append(col)
 
     # Drawing the bar
-    # status_bar(stdscr, "MenuBar DEMO | Make your choice =)")
-    hotkey_list = menu_hotkey_option(options)
+    status_bar(stdscr, "MenuBar DEMO | Make your choice =)")
+    hotkey_list = menu_hotkey_option(menubar_options)
     idx = 0
-    for opc in options:
+    for opc in menubar_options:
         stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(2))
         stdscr.addstr(0, col + hotkey_list[idx][2] + 1, hotkey_list[idx][1], curses.color_pair(3))
         col += len(opc) + 2
@@ -207,8 +212,8 @@ def horizontal_menu(stdscr: object, options: list):
     key = stdscr.getkey()
     while key != ord('q'):
         if any(key in i for i in hotkey_list):
-            ch = vertical_menu(stdscr, ['Opcion 1', 'Opcion 2', 'Opcion 3'],
-                               1, list_cols[hotkeys.index(key)])
+            submenu_options = options_dict[menubar_options[hotkeys.index(key)]]
+            ch = vertical_menu(stdscr, submenu_options, 1, list_cols[hotkeys.index(key)])
             break
         key = stdscr.getkey()
 
@@ -218,7 +223,12 @@ def horizontal_menu(stdscr: object, options: list):
 # Main curses app
 def myapp(scr):
     s = curses_init(scr)
-    myops = ["File", "Edit", "View", "Help"]
+
+    myops = {"File": ["Open", "Close", "Exit"],
+             "Edit": ["Copy", "Paste", "Options"],
+             "View": ["As PDF", "As TXT"],
+             "Help": ["About"]}
+
     horizontal_menu(s, myops)
     # ch = vertical_menu(s, myops, 10, 10)
     # status_bar(s, f'Opcion: {ch}')
