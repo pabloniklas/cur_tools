@@ -110,7 +110,7 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
 
     window_menu.addstr(highlight_option + 2,
                        hotkey_list[highlight_option][2] + 2,
-                       choices[highlight_option][hotkey_list[highlight_option][2]:hotkey_list[highlight_option][2] + 1],
+                       hotkey_list[highlight_option][1],
                        curses.color_pair(3))
 
     # Portability
@@ -135,8 +135,7 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
 
             window_menu.addstr(highlight_option + 2,
                                hotkey_list[highlight_option][2] + 2,
-                               choices[highlight_option][
-                               hotkey_list[highlight_option][2]:hotkey_list[highlight_option][2] + 1],
+                               hotkey_list[highlight_option][1],
                                curses.color_pair(3))
 
             highlight_option += 1
@@ -174,8 +173,14 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
         pressed = window_menu.getch()
 
     window_menu.erase()
+    window_menu.refresh()
 
-    return highlight_option + 1
+    if pressed == 67:
+        return -10
+    elif pressed == 68:
+        return -11
+    else:
+        return highlight_option + 1
 
 
 def horizontal_menu(stdscr: object, options_dict: dict):
@@ -197,6 +202,7 @@ def horizontal_menu(stdscr: object, options_dict: dict):
     for opc in menubar_options:
         stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(2))
         stdscr.addstr(0, col + hotkey_list[idx][2] + 1, hotkey_list[idx][1], curses.color_pair(3))
+
         col += len(opc) + 2
         idx += 1
         list_cols.append(col)
@@ -204,20 +210,50 @@ def horizontal_menu(stdscr: object, options_dict: dict):
     stdscr.addstr(0, col, " " * (width - col), curses.color_pair(2))
     stdscr.refresh()
 
-    # Main cycle
+    # Creating a new list to keep the code simple
     hotkeys = []
     for h in hotkey_list:
         hotkeys.append(h[1])
-    ch = -1
-    key = stdscr.getkey()
-    while key != ord('q'):
-        if any(key in i for i in hotkey_list):
-            submenu_options = options_dict[menubar_options[hotkeys.index(key)]]
-            ch = vertical_menu(stdscr, submenu_options, 1, list_cols[hotkeys.index(key)])
-            break
-        key = stdscr.getkey()
 
-    return hotkeys.index(key), ch
+    submenu_choice = -1
+
+    # Main cycle
+    key = stdscr.getkey()
+
+    if any(key in i for i in hotkey_list):
+        try:
+            idx = hotkeys.index(key)
+        except ValueError:
+            pass
+
+        submenu_options = options_dict[menubar_options[idx]]
+        submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
+
+    while True:   # For my fellow colleagues.
+
+        # Going to the right
+        if submenu_choice == -10:
+            if idx < len(menubar_options) - 1:
+                idx += 1
+
+        # Going to the left
+        elif submenu_choice == -11:
+            if idx > 0:
+                idx -= 1
+        else:
+            break
+
+        submenu_options = options_dict[menubar_options[idx]]
+        submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
+
+        key = stdscr.getkey()
+        if any(key in i for i in hotkey_list):
+            try:
+                idx = hotkeys.index(key)
+            except ValueError:
+                pass
+
+    return idx + 1, submenu_choice
 
 
 # Main curses app
@@ -229,9 +265,9 @@ def myapp(scr):
              "View": ["As PDF", "As TXT"],
              "Help": ["About"]}
 
-    horizontal_menu(s, myops)
+    ch = horizontal_menu(s, myops)
     # ch = vertical_menu(s, myops, 10, 10)
-    # status_bar(s, f'Opcion: {ch}')
+    status_bar(s, f'Opcion: {ch}')
     sys.stdin.read(1)
 
 
