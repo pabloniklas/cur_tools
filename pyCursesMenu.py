@@ -6,10 +6,11 @@
 #
 
 import curses
+import platform
+import sys
 from curses import ascii
+
 from var_dump import var_dump
-# import string
-import sys, platform
 
 
 def curses_init(scr: object) -> object:
@@ -36,13 +37,27 @@ def curses_init(scr: object) -> object:
 def curses_end():
     curses.endwin()
 
+
+def curses_initwin(width, height, wx, wy, title: str = "") -> object:
+    w = curses.newwin(width, height, wx, wy)
+    w.box()
+    w.bkgd(' ', curses.color_pair(2))
+
+    if title != "":
+        col = int((width - len(title)) / 2)
+        w.addstr(0, col, f'[ {title} ]', curses.A_REVERSE)
+
+    return w
+
+
 def curses_delwin(w: object):
     w.bkgd(' ', curses.color_pair(1))
     w.erase()
     w.refresh()
     del w
 
-def menu_hotkey_option(choices: list) -> list:
+
+def _curses_menu_hotkey_option(choices: list) -> list:
     hotkey_list = []
 
     # Walking the choices list.
@@ -67,8 +82,8 @@ def menu_hotkey_option(choices: list) -> list:
     return hotkey_list
 
 
-def test_menu_hotkey_option(choices: list):
-    var_dump(menu_hotkey_option(choices))
+def _test_menu_hotkey_option(choices: list):
+    var_dump(_curses_menu_hotkey_option(choices))
 
 
 def curses_status_bar(stdscr: object, txt: str):
@@ -79,7 +94,7 @@ def curses_status_bar(stdscr: object, txt: str):
     stdscr.refresh()
 
 
-def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
+def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
     # Finding the max length between the menu options.
     max_length = 0
     for x in choices:
@@ -87,12 +102,10 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
             max_length = len(x)
 
     # Discovering the hotkeys
-    hotkey_list = menu_hotkey_option(choices)
+    hotkey_list = _curses_menu_hotkey_option(choices)
 
     # Drawing the window
-    window_menu = curses.newwin(len(choices) + 3, max_length + 5, wx, wy)
-    window_menu.box()
-    window_menu.bkgd(' ', curses.color_pair(2))
+    window_menu = curses_initwin(len(choices) + 3, max_length + 5, wx, wy)
 
     # Printing the choices.
     row = 0
@@ -200,7 +213,7 @@ def horizontal_menu(stdscr: object, options_dict: dict):
 
     # Drawing the bar
     curses_status_bar(stdscr, " MenuBar DEMO | Make your choice =)")
-    hotkey_list = menu_hotkey_option(menubar_options)
+    hotkey_list = _curses_menu_hotkey_option(menubar_options)
     idx = 0
     for opc in menubar_options:
         stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(2))
@@ -229,9 +242,9 @@ def horizontal_menu(stdscr: object, options_dict: dict):
             pass
 
     submenu_options = options_dict[menubar_options[idx]]
-    submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
+    submenu_choice = curses_vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
 
-    while True:   # For my fellow colleagues.
+    while True:  # For my fellow colleagues.
 
         # Going to the right
         if submenu_choice == -10:
@@ -253,7 +266,7 @@ def horizontal_menu(stdscr: object, options_dict: dict):
                 pass
 
         submenu_options = options_dict[menubar_options[idx]]
-        submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
+        submenu_choice = curses_vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
 
     return idx + 1, submenu_choice
 
