@@ -199,7 +199,7 @@ def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
         return highlight_option + 1
 
 
-def horizontal_menu(stdscr: object, options_dict: dict):
+def curses_horizontal_menu(stdscr: object, options_dict: dict):
     menubar_options = []
 
     for k in options_dict:
@@ -244,7 +244,7 @@ def horizontal_menu(stdscr: object, options_dict: dict):
     submenu_options = options_dict[menubar_options[idx]]
     submenu_choice = curses_vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
 
-    while True:  # For my fellow colleagues.
+    while (submenu_choice == -10) or (submenu_choice == -11) or (submenu_choice == -1):
 
         # Going to the right
         if submenu_choice == -10:
@@ -255,8 +255,6 @@ def horizontal_menu(stdscr: object, options_dict: dict):
         elif submenu_choice == -11:
             if idx > 0:
                 idx -= 1
-        else:
-            break
 
         key = stdscr.getkey()
         if any(key in i for i in hotkey_list):
@@ -280,7 +278,7 @@ def myapp(scr):
              "View": ["As PDF", "As TXT"],
              "Help": ["About"]}
 
-    ch = horizontal_menu(s, myops)
+    ch = curses_horizontal_menu(s, myops)
     # ch = vertical_menu(s, myops, 10, 10)
     curses_status_bar(s, f'Opcion: {ch}')
     sys.stdin.read(1)
