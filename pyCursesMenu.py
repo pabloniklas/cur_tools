@@ -36,6 +36,11 @@ def curses_init(scr: object) -> object:
 def curses_end():
     curses.endwin()
 
+def curses_delwin(w: object):
+    w.bkgd(' ', curses.color_pair(1))
+    w.erase()
+    w.refresh()
+    del w
 
 def menu_hotkey_option(choices: list) -> list:
     hotkey_list = []
@@ -55,7 +60,7 @@ def menu_hotkey_option(choices: list) -> list:
                 # https://stackoverflow.com/questions/13728023/check-if-a-sublist-contains-an-item
                 if any(x in i for i in hotkey_list):
                     continue
-                else:  # Add if not exist.
+                else:  # Add if not exists.
                     hotkey_list.append([opt, x, opt.find(x)])
                     break
 
@@ -66,7 +71,7 @@ def test_menu_hotkey_option(choices: list):
     var_dump(menu_hotkey_option(choices))
 
 
-def status_bar(stdscr: object, txt: str):
+def curses_status_bar(stdscr: object, txt: str):
     height, width = stdscr.getmaxyx()
 
     stdscr.addstr(height - 1, 0, txt, curses.color_pair(2))
@@ -87,7 +92,6 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
     # Drawing the window
     window_menu = curses.newwin(len(choices) + 3, max_length + 5, wx, wy)
     window_menu.box()
-    # rectangle(window_menu, 0, 0, len(choices) + 2, max_length + 3)
     window_menu.bkgd(' ', curses.color_pair(2))
 
     # Printing the choices.
@@ -124,7 +128,7 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
             pressed != 68 and \
             pressed != ENTER:
 
-        status_bar(stdscr, "Press 'ESC' to exit | STATUS BAR | pressed: {}".format(pressed))
+        curses_status_bar(stdscr, "Press 'ESC' to exit | STATUS BAR | pressed: {}".format(pressed))
 
         # getch(): 001000010 = 66
         # curses.KEY_DOWN: 100000010 = 258
@@ -172,8 +176,7 @@ def vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
         window_menu.refresh()
         pressed = window_menu.getch()
 
-    window_menu.erase()
-    window_menu.refresh()
+    curses_delwin(window_menu)
 
     if pressed == 67:
         return -10
@@ -196,7 +199,7 @@ def horizontal_menu(stdscr: object, options_dict: dict):
     list_cols.append(col)
 
     # Drawing the bar
-    status_bar(stdscr, "MenuBar DEMO | Make your choice =)")
+    curses_status_bar(stdscr, " MenuBar DEMO | Make your choice =)")
     hotkey_list = menu_hotkey_option(menubar_options)
     idx = 0
     for opc in menubar_options:
@@ -219,15 +222,14 @@ def horizontal_menu(stdscr: object, options_dict: dict):
 
     # Main cycle
     key = stdscr.getkey()
-
     if any(key in i for i in hotkey_list):
         try:
             idx = hotkeys.index(key)
         except ValueError:
             pass
 
-        submenu_options = options_dict[menubar_options[idx]]
-        submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
+    submenu_options = options_dict[menubar_options[idx]]
+    submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
 
     while True:   # For my fellow colleagues.
 
@@ -243,15 +245,15 @@ def horizontal_menu(stdscr: object, options_dict: dict):
         else:
             break
 
-        submenu_options = options_dict[menubar_options[idx]]
-        submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
-
         key = stdscr.getkey()
         if any(key in i for i in hotkey_list):
             try:
                 idx = hotkeys.index(key)
             except ValueError:
                 pass
+
+        submenu_options = options_dict[menubar_options[idx]]
+        submenu_choice = vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
 
     return idx + 1, submenu_choice
 
@@ -267,11 +269,11 @@ def myapp(scr):
 
     ch = horizontal_menu(s, myops)
     # ch = vertical_menu(s, myops, 10, 10)
-    status_bar(s, f'Opcion: {ch}')
+    curses_status_bar(s, f'Opcion: {ch}')
     sys.stdin.read(1)
 
 
-# Python entry point
+# Python's entry point
 if __name__ == '__main__':
     curses.wrapper(myapp)
 
