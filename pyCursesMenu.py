@@ -279,7 +279,6 @@ def myapp(scr):
              "Help": ["About"]}
 
     ch = curses_horizontal_menu(s, myops)
-    # ch = vertical_menu(s, myops, 10, 10)
     curses_status_bar(s, f'Opcion: {ch}')
     sys.stdin.read(1)
 
