@@ -38,13 +38,29 @@ def curses_end():
     curses.endwin()
 
 
-def curses_initwin(width, height, wx, wy, title: str = "") -> object:
-    w = curses.newwin(width, height, wx, wy)
+def curses_info_win(s, txt):
+    mh, mw = s.getmaxyx()
+    w = len(txt) + 6
+
+    if w < 30:
+        w = 30
+
+    h = 7
+    wx = int((mh - h) / 2)
+    wy = int((mw - w) / 2)
+    wininfo = curses_initwin(h, w, wx, wy, "INFO")
+    wininfo.addstr(3, 3, txt)
+    wininfo.getch()
+    curses_delwin(wininfo)
+
+
+def curses_initwin(height, width, wx, wy, title: str = "") -> object:
+    w = curses.newwin(height, width, wx, wy)
     w.box()
     w.bkgd(' ', curses.color_pair(2))
 
     if title != "":
-        col = int((width - len(title)) / 2)
+        col = int((width - len(title) - 4) / 2)
         w.addstr(0, col, f'[ {title} ]', curses.A_REVERSE)
 
     return w
@@ -141,7 +157,7 @@ def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
             pressed != 68 and \
             pressed != ENTER:
 
-        curses_status_bar(stdscr, "Press 'ESC' to exit | STATUS BAR | pressed: {}".format(pressed))
+        curses_status_bar(stdscr, "STATUS BAR | pressed: {}".format(pressed))
 
         # getch(): 001000010 = 66
         # curses.KEY_DOWN: 100000010 = 258
@@ -267,24 +283,3 @@ def curses_horizontal_menu(stdscr: object, options_dict: dict):
         submenu_choice = curses_vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
 
     return idx + 1, submenu_choice
-
-
-# Main curses app
-def myapp(scr):
-    s = curses_init(scr)
-
-    myops = {"File": ["Open", "Close", "Exit"],
-             "Edit": ["Copy", "Paste", "Options"],
-             "View": ["As PDF", "As TXT"],
-             "Help": ["About"]}
-
-    ch = curses_horizontal_menu(s, myops)
-    curses_status_bar(s, f'Opcion: {ch}')
-    sys.stdin.read(1)
-
-
-# Python's entry point
-if __name__ == '__main__':
-    curses.wrapper(myapp)
-
-sys.exit(0)

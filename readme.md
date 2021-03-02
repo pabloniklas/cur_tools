@@ -5,6 +5,23 @@ By Pablo Niklas
 
 The idea behind this library is to provide a menu bar (DOS style).
 
+## Prerequisites
+
+*  curses package
+
+## curses_info_win()
+
+A simple information window.
+
+### Usage
+
+```python
+curses_info_win(screen, txt)
+```
+
+*  screen: curses's screen object
+*  txt: text to be displayed.
+
 ## curses_horizontal_menu()
 
 It creates a horizontal menu bar.
@@ -22,22 +39,28 @@ with submenus
 ```python
 ops = {"Menu Option 1": [ "Submenu option 1", "Submenu option 2"],
        "Menu Option 2": [ "Submenu option 3"]}
+
+user_choice = pyCurses.curses_horizontal_menu(s, myops)
 ```
 
 ### Example
 
-
 ```python
+import curses
+import cur_tools
+import sys
+
+
 def myapp(scr):
-    s = curses_init(scr)
+    s = cur_tools.curses_init(scr)
 
     myops = {"File": ["Open", "Close", "Exit"],
              "Edit": ["Copy", "Paste", "Options"],
              "View": ["As PDF", "As TXT"],
              "Help": ["About"]}
 
-    ch = curses_horizontal_menu(s, myops)
-    curses_status_bar(s, f'Opcion: {ch}')
+    ch = cur_tools.curses_horizontal_menu(s, myops)
+    cur_tools.curses_status_bar(s, f'Opcion: {ch}')
     sys.stdin.read(1)
 
 
