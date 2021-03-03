@@ -22,6 +22,11 @@ curses_info_win(screen, txt)
 *  screen: curses's screen object
 *  txt: text to be displayed.
 
+### Screenshot
+
+![Windows](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/windows.png "window")
+
+
 ## curses_horizontal_menu()
 
 It creates a horizontal menu bar.
