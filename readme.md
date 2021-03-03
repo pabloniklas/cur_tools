@@ -1,9 +1,9 @@
-# pyCursesMenu
+# CurTools
 By Pablo Niklas 
 
 ## Introduction
 
-The idea behind this library is to provide a menu bar (DOS style).
+The idea behind this library is to provide DOS style interface using curses.
 
 ## Prerequisites
 
