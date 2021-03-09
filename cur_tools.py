@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# pyCursesMenu
+# CurTools
 #
 # By Pablo Niklas <pablo _dot_ niklas _at_ gmail _dot_ com>
 #
