@@ -1,7 +1,7 @@
 # CurTools
 By Pablo Niklas 
 
-<img src=https://img.shields.io/github/license/pabloniklas/CurTools> <img src=https://img.shields.io/github/v/release/pabloniklas/aegs/CurTools> <img src=https://img.shields.io/github/languages/top/pabloniklas/CurTools>
+<img src=https://img.shields.io/github/license/pabloniklas/CurTools> <img src=https://img.shields.io/github/v/release/pabloniklas/CurTools> <img src=https://img.shields.io/github/languages/top/pabloniklas/CurTools>
 
 
 
