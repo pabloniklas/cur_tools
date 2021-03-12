@@ -1,4 +1,4 @@
-# CurTools
+# cur_tools
 By Pablo Niklas 
 
 <img src=https://img.shields.io/github/license/pabloniklas/CurTools> <img src=https://img.shields.io/github/v/release/pabloniklas/CurTools> <img src=https://img.shields.io/github/languages/top/pabloniklas/CurTools> <img src=https://img.shields.io/github/downloads/pabloniklas/cur_tools/total>
@@ -11,11 +11,13 @@ The idea behind this library is to provide DOS like interface using curses.
 
 *  curses package
 
-## curses_info_win()
+## Functions
+
+### curses_info_win()
 
 A simple information window.
 
-### Usage
+#### Usage
 
 ```python
 curses_info_win(screen, txt)
@@ -24,16 +26,16 @@ curses_info_win(screen, txt)
 *  screen: curses's screen object
 *  txt: text to be displayed.
 
-### Screenshot
+#### Screenshot
 
 ![Windows](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/windows.png "window")
 
 
-## curses_horizontal_menu()
+### curses_horizontal_menu()
 
 It creates a horizontal menu bar.
 
-### Screnshots
+#### Screnshots
 
 ![Menu](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/static_menu01.png "Menu bar")
 
@@ -41,7 +43,7 @@ with submenus
 
 ![Menu](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/static_menu02.png "Submenu")
 
-### Usage
+#### Usage
 
 ```python
 ops = {"Menu Option 1": [ "Submenu option 1", "Submenu option 2"],
@@ -50,7 +52,7 @@ ops = {"Menu Option 1": [ "Submenu option 1", "Submenu option 2"],
 user_choice = pyCurses.curses_horizontal_menu(s, myops)
 ```
 
-### Example
+#### Example
 
 ```python
 import curses
@@ -75,4 +77,8 @@ def myapp(scr):
 if __name__ == '__main__':
     curses.wrapper(myapp)
 ```
+
+## License
+
+MIT
 
