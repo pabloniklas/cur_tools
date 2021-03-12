@@ -1,6 +1,6 @@
 
 import curses
-import cur_tools
+from src.cur_tools import cur_tools
 import sys
 
 # Main curses app

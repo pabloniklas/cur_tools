@@ -56,7 +56,7 @@ user_choice = pyCurses.curses_horizontal_menu(s, myops)
 
 ```python
 import curses
-import cur_tools
+from src.cur_tools import cur_tools
 import sys
 
 
