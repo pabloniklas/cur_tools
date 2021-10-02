@@ -8,9 +8,10 @@
 import curses
 import platform
 import sys
+import re
 from curses import ascii
 
-from var_dump import var_dump
+#from var_dump import var_dump
 
 
 def curses_init(scr: object) -> object:
@@ -22,8 +23,10 @@ def curses_init(scr: object) -> object:
     # Defino los pares de colores
     curses.start_color()
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLUE)  # Pantalla
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)  # Para ventanas fondo
-    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_WHITE)  # Para ventanas titulo
+    # Para ventanas fondo
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    # Para ventanas titulo
+    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_WHITE)
 
     scr.bkgd(curses.color_pair(1))
     scr.clear()
@@ -105,8 +108,11 @@ def _test_menu_hotkey_option(choices: list):
 def curses_status_bar(stdscr: object, txt: str):
     height, width = stdscr.getmaxyx()
 
+    txt += " "
+
     stdscr.addstr(height - 1, 0, txt, curses.color_pair(2))
-    stdscr.addstr(height - 1, len(txt) - 1, " " * (width - len(txt)), curses.color_pair(2))
+    stdscr.addstr(height - 1, len(txt) - 1, " " *
+                  (width - len(txt)), curses.color_pair(2))
     stdscr.refresh()
 
 
@@ -126,7 +132,8 @@ def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
     # Printing the choices.
     row = 0
     for x in choices:
-        window_menu.addstr(row + 2, 1, " " + x.ljust(max_length + 1), curses.color_pair(2))
+        window_menu.addstr(row + 2, 1, " " +
+                           x.ljust(max_length + 1), curses.color_pair(2))
 
         window_menu.addstr(row + 2,
                            hotkey_list[row][2] + 2,
@@ -215,6 +222,23 @@ def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
         return highlight_option + 1
 
 
+def _search_in_list(list: list, item) -> int:
+
+    x = -1
+
+    try:
+        x = list.index(item.lower())
+    except ValueError:
+        pass
+
+    try:
+        x = list.index(item.upper())
+    except ValueError:
+        pass
+
+    return x
+
+
 def curses_horizontal_menu(stdscr: object, options_dict: dict):
     menubar_options = []
 
@@ -228,12 +252,13 @@ def curses_horizontal_menu(stdscr: object, options_dict: dict):
     list_cols.append(col)
 
     # Drawing the bar
-    curses_status_bar(stdscr, " MenuBar DEMO | Make your choice =)")
+    curses_status_bar(stdscr, " MenuBar DEMO | Make your choice ==)")
     hotkey_list = _curses_menu_hotkey_option(menubar_options)
     idx = 0
     for opc in menubar_options:
         stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(2))
-        stdscr.addstr(0, col + hotkey_list[idx][2] + 1, hotkey_list[idx][1], curses.color_pair(3))
+        stdscr.addstr(
+            0, col + hotkey_list[idx][2] + 1, hotkey_list[idx][1], curses.color_pair(3))
 
         col += len(opc) + 2
         idx += 1
@@ -251,35 +276,41 @@ def curses_horizontal_menu(stdscr: object, options_dict: dict):
 
     # Main cycle
     key = stdscr.getkey()
-    if any(key in i for i in hotkey_list):
-        try:
-            idx = hotkeys.index(key)
-        except ValueError:
-            pass
 
-    submenu_options = options_dict[menubar_options[idx]]
-    submenu_choice = curses_vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
+    curses_status_bar(stdscr, "KEY == "+str(key))  # DEBUG
 
-    while (submenu_choice == -10) or (submenu_choice == -11) or (submenu_choice == -1):
+    if _search_in_list(hotkey_list, key) != -1:
+        idx = hotkeys.index(key)
 
-        # Going to the right
-        if submenu_choice == -10:
-            if idx < len(menubar_options) - 1:
-                idx += 1
+        _idx = menubar_options[idx]
 
-        # Going to the left
-        elif submenu_choice == -11:
-            if idx > 0:
-                idx -= 1
+        curses_status_bar(stdscr, "** ENTRE **")  # DEBUG
 
-        key = stdscr.getkey()
-        if any(key in i for i in hotkey_list):
-            try:
-                idx = hotkeys.index(key)
-            except ValueError:
-                pass
+        submenu_options = options_dict[_idx]
+        submenu_choice = curses_vertical_menu(
+            stdscr, submenu_options, 1, list_cols[idx])
 
-        submenu_options = options_dict[menubar_options[idx]]
-        submenu_choice = curses_vertical_menu(stdscr, submenu_options, 1, list_cols[idx])
+        while (submenu_choice == -10) or (submenu_choice == -11) or (submenu_choice == -1):
+
+            # Going to the right
+            if submenu_choice == -10:
+                if idx < len(menubar_options) - 1:
+                    idx += 1
+
+            # Going to the left
+            elif submenu_choice == -11:
+                if idx > 0:
+                    idx -= 1
+
+            key = stdscr.getkey()
+            if any(key in i for i in hotkey_list):
+                try:
+                    idx = hotkeys.index(key)
+                except ValueError:
+                    pass
+
+            submenu_options = options_dict[menubar_options[idx]]
+            submenu_choice = curses_vertical_menu(
+                stdscr, submenu_options, 1, list_cols[idx])
 
     return idx + 1, submenu_choice
