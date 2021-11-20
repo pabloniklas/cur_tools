@@ -44,7 +44,7 @@ def curses_end():
     curses.endwin()
 
 
-def curses_info_win(s, txt):
+def info_win(s, txt):
     mh, mw = s.getmaxyx()
     w = len(txt) + 6
 
@@ -336,6 +336,11 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict):
             submenu_choice = curses_vertical_menu(
                 stdscr, submenu_options, 1, list_cols[idx])
     else:
-        curses_info_win(stdscr, f"Letra '{key}' no encontrada en la lista {hotkey_list}")
+        info_win(stdscr, f"Letra '{key}' no encontrada en la lista {hotkey_list}")
 
     return idx + 1, submenu_choice
+
+
+def text_browse(stdscr: curses, text):
+
+    width = 20
