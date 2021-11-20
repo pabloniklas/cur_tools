@@ -288,7 +288,7 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict):
     stdscr.nodelay(True)
     if key == chr(27):
         key = stdscr.getkey()
-    elif key == chr(curses.ascii.NL) or key == curses.KEY_RIGHT or key == curses.KEY_LEFT:
+    else:
         key = hotkey_list[0][1]
 
     stdscr.nodelay(False)
