@@ -27,6 +27,9 @@ def curses_init(scr: curses) -> object:
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
     # Para ventanas titulo
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_WHITE)
+    # Items
+    curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_GREEN)
+    curses.init_pair(5, curses.COLOR_RED, curses.COLOR_GREEN)
 
     scr.bkgd(curses.color_pair(1))
     scr.clear()
@@ -161,21 +164,21 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx, wy) -> int:
     # Submenu main cycle.
     highlight_option = 0
     window_menu.addstr(highlight_option + 2, 1, " " +
-                       choices[highlight_option].ljust(max_length + 1), curses.color_pair(1))
+                       choices[highlight_option].ljust(max_length + 1), curses.color_pair(4))
 
     window_menu.addstr(highlight_option + 2,
                        hotkey_list[highlight_option][2] + 2,
                        hotkey_list[highlight_option][1],
-                       curses.color_pair(3))
+                       curses.color_pair(5))
 
-    ENTER = curses.ascii.CR
+    ENTER = curses.ascii.NL
 
     pressed = window_menu.getch()
     while pressed != 67 and \
             pressed != 68 and \
             pressed != ENTER:
 
-        curses_status_bar(stdscr, "STATUS BAR | pressed: {}".format(pressed))
+        # curses_status_bar(stdscr, "STATUS BAR | pressed: {}".format(pressed))
 
         # getch(): 001000010 = 66
         # curses.KEY_DOWN: 100000010 = 258
@@ -213,12 +216,12 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx, wy) -> int:
 
         # Draw new option
         window_menu.addstr(highlight_option + 2, 1, " " +
-                           choices[highlight_option].ljust(max_length + 1), curses.color_pair(1))
+                           choices[highlight_option].ljust(max_length + 1), curses.color_pair(4))
 
         window_menu.addstr(highlight_option + 2,
                            hotkey_list[highlight_option][2] + 2,
                            hotkey_list[highlight_option][1],
-                           curses.color_pair(3))
+                           curses.color_pair(5))
 
         window_menu.refresh()
         pressed = window_menu.getch()
@@ -281,10 +284,12 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict):
     submenu_choice = -1
 
     # Main cycle
-    key = ""
-    if stdscr.getkey() == chr(27):
-        stdscr.nodelay(True)
+    key = stdscr.getkey()
+    stdscr.nodelay(True)
+    if key == chr(27):
         key = stdscr.getkey()
+    elif key == chr(curses.ascii.NL) or key == curses.KEY_RIGHT or key == curses.KEY_LEFT:
+        key = hotkey_list[0][1]
 
     stdscr.nodelay(False)
 
@@ -296,6 +301,7 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict):
 
         _idx = menubar_options[idx]
 
+        # Calling the vertical menu
         submenu_options = options_dict[_idx]
         submenu_choice = curses_vertical_menu(
             stdscr, submenu_options, 1, list_cols[idx])
@@ -312,8 +318,12 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict):
                 if idx > 0:
                     idx -= 1
 
-            # Pressing the sequence
-            if stdscr.getkey() == chr(27):
+            # Enter
+            elif submenu_choice >=0 and submenu_choice < len(submenu_options):
+                return idx + 1, submenu_choice
+
+            # Any other key
+            elif stdscr.getkey() == chr(27):
                 stdscr.nodelay(True)
                 key = stdscr.getkey()
                 if any(key in i for i in hotkey_list):
