@@ -3,6 +3,9 @@ By Pablo Niklas
 
 <img src=https://img.shields.io/github/license/pabloniklas/CurTools> <img src=https://img.shields.io/github/v/release/pabloniklas/CurTools> <img src=https://img.shields.io/github/languages/top/pabloniklas/CurTools> <img src=https://img.shields.io/github/downloads/pabloniklas/cur_tools/total>
 
+
+![Demo](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/demo.gif "demo")
+
 ## Introduction
 
 The idea behind this library is to provide DOS like interface using curses.
