@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # CurTools
 #
@@ -6,15 +6,15 @@
 #
 
 import curses
-import platform
-import sys
-import re
 from curses import ascii
+import keyboard
+import time
+import string
 
-#from var_dump import var_dump
+from var_dump import var_dump
 
 
-def curses_init(scr: object) -> object:
+def curses_init(scr: curses) -> object:
     curses.initscr()
     curses.cbreak()
     curses.noecho()
@@ -69,7 +69,7 @@ def curses_initwin(height, width, wx, wy, title: str = "") -> object:
     return w
 
 
-def curses_delwin(w: object):
+def curses_delwin(w: curses):
     w.bkgd(' ', curses.color_pair(1))
     w.erase()
     w.refresh()
@@ -105,8 +105,22 @@ def _test_menu_hotkey_option(choices: list):
     var_dump(_curses_menu_hotkey_option(choices))
 
 
-def curses_status_bar(stdscr: object, txt: str):
+def curses_status_bar(stdscr: curses, intxt: str):
     height, width = stdscr.getmaxyx()
+
+    txt = ""
+
+    # Case dictionary
+    switcher = {
+        13: ">ENTER<"
+    }
+
+    for c in intxt:
+        if c in string.printable:
+            txt += c
+        else:
+            asc = ord(c)
+            txt += switcher.get(asc, f"ASCII not found ==> {asc}")
 
     txt += " "
 
@@ -114,9 +128,10 @@ def curses_status_bar(stdscr: object, txt: str):
     stdscr.addstr(height - 1, len(txt) - 1, " " *
                   (width - len(txt)), curses.color_pair(2))
     stdscr.refresh()
+    # time.sleep(2)
 
 
-def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
+def curses_vertical_menu(stdscr: curses, choices: list, wx, wy) -> int:
     # Finding the max length between the menu options.
     max_length = 0
     for x in choices:
@@ -153,11 +168,7 @@ def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
                        hotkey_list[highlight_option][1],
                        curses.color_pair(3))
 
-    # Portability
-    if platform.system() == 'Darwin':
-        ENTER = curses.ascii.LF
-    elif platform.system() == 'Windows':
-        ENTER = curses.ascii.CR
+    ENTER = curses.ascii.CR
 
     pressed = window_menu.getch()
     while pressed != 67 and \
@@ -222,24 +233,19 @@ def curses_vertical_menu(stdscr: object, choices: list, wx, wy) -> int:
         return highlight_option + 1
 
 
-def _search_in_list(list: list, item) -> int:
+def _search_in_list(list: list, key, idx) -> int:
+    x = 0
 
-    x = -1
-
-    try:
-        x = list.index(item.lower())
-    except ValueError:
-        pass
-
-    try:
-        x = list.index(item.upper())
-    except ValueError:
-        pass
+    for item in list:
+        if item[idx] == key.lower() or item[idx] == key.upper():
+            return x
+        else:
+            x = x + 1
 
     return x
 
 
-def curses_horizontal_menu(stdscr: object, options_dict: dict):
+def curses_horizontal_menu(stdscr: curses, options_dict: dict):
     menubar_options = []
 
     for k in options_dict:
@@ -252,7 +258,7 @@ def curses_horizontal_menu(stdscr: object, options_dict: dict):
     list_cols.append(col)
 
     # Drawing the bar
-    curses_status_bar(stdscr, " MenuBar DEMO | Make your choice ==)")
+    curses_status_bar(stdscr, " MenuBar DEMO | Make your choice =)")
     hotkey_list = _curses_menu_hotkey_option(menubar_options)
     idx = 0
     for opc in menubar_options:
@@ -275,16 +281,20 @@ def curses_horizontal_menu(stdscr: object, options_dict: dict):
     submenu_choice = -1
 
     # Main cycle
-    key = stdscr.getkey()
+    key = ""
+    if stdscr.getkey() == chr(27):
+        stdscr.nodelay(True)
+        key = stdscr.getkey()
 
-    curses_status_bar(stdscr, "KEY == "+str(key))  # DEBUG
+    stdscr.nodelay(False)
 
-    if _search_in_list(hotkey_list, key) != -1:
-        idx = hotkeys.index(key)
+    if _search_in_list(hotkey_list, key, 2) != -1:
+        try:
+            idx = hotkeys.index(key.upper())
+        except ValueError:
+            pass
 
         _idx = menubar_options[idx]
-
-        curses_status_bar(stdscr, "** ENTRE **")  # DEBUG
 
         submenu_options = options_dict[_idx]
         submenu_choice = curses_vertical_menu(
@@ -302,15 +312,20 @@ def curses_horizontal_menu(stdscr: object, options_dict: dict):
                 if idx > 0:
                     idx -= 1
 
-            key = stdscr.getkey()
-            if any(key in i for i in hotkey_list):
-                try:
-                    idx = hotkeys.index(key)
-                except ValueError:
-                    pass
+            # Pressing the sequence
+            if stdscr.getkey() == chr(27):
+                stdscr.nodelay(True)
+                key = stdscr.getkey()
+                if any(key in i for i in hotkey_list):
+                    try:
+                        idx = hotkeys.index(key.upper())
+                    except ValueError:
+                        pass
 
             submenu_options = options_dict[menubar_options[idx]]
             submenu_choice = curses_vertical_menu(
                 stdscr, submenu_options, 1, list_cols[idx])
+    else:
+        curses_info_win(stdscr, f"Letra '{key}' no encontrada en la lista {hotkey_list}")
 
     return idx + 1, submenu_choice

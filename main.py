@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 import curses
 from src.cur_tools import cur_tools
 import sys
@@ -9,20 +9,22 @@ import sys
 def myapp(scr):
     s = cur_tools.curses_init(scr)
 
-    myops = {"File": ["Open", "Close", "Exit"],
-             "Edit": ["Copy", "Paste", "Options"],
-             "View": ["As PDF", "As TXT"],
+    myops = {"File": ["Exit"],
+             "Demo": ["Control 1", "Control 2", "Control 3"],
              "Help": ["About"]}
 
     m, mm = cur_tools.curses_horizontal_menu(s, myops)
-    cur_tools.curses_status_bar(s, f'Opcion: ({m} , {mm})')
+    while (m != 1 and mm != 1):     # File->Exit
 
-    # Option branch.
-    if m == 1 and s == 1:
-        cur_tools.curses_info_win(s, "Open")
-    else:
-        cur_tools.curses_info_win(s, "Not detected")
+        cur_tools.curses_status_bar(s, f'Opcion: ({m} , {mm})')
 
+        # Option branch.
+        if m == 1 and s == 1:
+            cur_tools.curses_info_win(s, "Open")
+        else:
+            cur_tools.curses_info_win(s, "Not detected")
+
+        m, mm = cur_tools.curses_horizontal_menu(s, myops)
 
 # Python's entry point
 if __name__ == '__main__':
