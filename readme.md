@@ -72,7 +72,7 @@ def myapp(scr):
              "Help": ["About"]}
 
     ch = cur_tools.curses_horizontal_menu(s, myops)
-    cur_tools.curses_status_bar(s, f'Opcion: {ch}')
+    cur_tools.status_bar(s, f'Opcion: {ch}')
     sys.stdin.read(1)
 
 

@@ -10,21 +10,30 @@ import lorem
 def myapp(scr):
     s = cur_tools.curses_init(scr)
 
-    myops = {"File": ["Exit"],
-             "Demos": ["Browse", "Demo 2", "Demo 3"],
-             "Help": ["About"]}
+    myops = {"File": [
+                ["Exit", "Exit this demo."]
+             ],
+             "Demos": [
+                ["Browse", "Database browsing demo."],
+                ["Demo 2", "Demo 2"],
+                ["Demo 3", "Demo 3"]
+             ],
+             "Help": [
+                ["About", "About this app."]
+             ]
+             }
 
     m, mm = cur_tools.curses_horizontal_menu(s, myops)
 
     while m != 1 or mm != 1    :     # File->Exit
 
-        cur_tools.curses_status_bar(s, f'Opcion: ({m} , {mm})')
+        cur_tools.status_bar(s, f'Opcion: ({m} , {mm})')
 
         # Option branch.
         if m == 2 and mm == 1:
             cur_tools.text_browse(s, lorem.paragraph())
         else:
-            cur_tools.info_win(s, "Men at work")
+            cur_tools.info_win(s, ":: Men at work ::")
 
         m, mm = cur_tools.curses_horizontal_menu(s, myops)
 
