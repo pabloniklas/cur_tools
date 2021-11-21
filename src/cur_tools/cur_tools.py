@@ -313,6 +313,7 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict):
         list_cols.append(col)
 
     stdscr.addstr(0, col, " " * (width - col), curses.color_pair(PAIR_WINDOW_BG))
+    status_bar(stdscr, "Make a choice.")
     stdscr.refresh()
 
     # Creating a new list to keep the code simple
