@@ -49,8 +49,15 @@ with submenus
 #### Usage
 
 ```python
-ops = {"Menu Option 1": [ "Submenu option 1", "Submenu option 2"],
-       "Menu Option 2": [ "Submenu option 3"]}
+ops = {
+        "Menu Option 1": [ 
+            [ "Submenu option 1", "Submenu option 1 status bar help"],
+            ["Submenu option 2" , "Submenu option 2 status bar help"]
+        ],
+       "Menu Option 2": [ 
+            ["Submenu option 3" "Submenu option 1 status bar help"]
+       ]
+      }
 
 user_choice = pyCurses.curses_horizontal_menu(s, myops)
 ```
@@ -66,10 +73,19 @@ import sys
 def myapp(scr):
     s = cur_tools.curses_init(scr)
 
-    myops = {"File": ["Open", "Close", "Exit"],
-             "Edit": ["Copy", "Paste", "Options"],
-             "View": ["As PDF", "As TXT"],
-             "Help": ["About"]}
+    myops = {
+             "File": [
+                ["Exit", "Exit this demo."]
+             ],
+             "Demos": [
+                ["Browse", "Database browsing demo."],
+                ["Demo 2", "Demo 2"],
+                ["Demo 3", "Demo 3"]
+             ],
+             "Help": [
+                ["About", "About this app."]
+             ]
+             }
 
     ch = cur_tools.curses_horizontal_menu(s, myops)
     cur_tools.status_bar(s, f'Opcion: {ch}')

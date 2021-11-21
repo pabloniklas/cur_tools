@@ -10,7 +10,8 @@ import lorem
 def myapp(scr):
     s = cur_tools.curses_init(scr)
 
-    myops = {"File": [
+    myops = {
+             "File": [
                 ["Exit", "Exit this demo."]
              ],
              "Demos": [
