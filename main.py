@@ -26,7 +26,7 @@ def myapp(scr):
 
     m, mm = cur_tools.curses_horizontal_menu(s, myops)
 
-    while m != 1 or mm != 1    :     # File->Exit
+    while m != 1 or mm != 1:     # File->Exit
 
         cur_tools.status_bar(s, f'Opcion: ({m} , {mm})')
 
