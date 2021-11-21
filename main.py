@@ -44,5 +44,5 @@ def myapp(scr):
 if __name__ == '__main__':
     curses.wrapper(myapp)
 
-print(" ==== Bye ===== ")
+print(" ===== Bye ===== ")
 sys.exit(0)
