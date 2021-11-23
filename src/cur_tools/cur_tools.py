@@ -541,12 +541,12 @@ def text_justification(text: string, width: int) -> list:
 
 
 # TODO: End this function.
-def text_browser(stdscr: curses, title: string, text: string):
+def text_browser(title: string, text: string):
     """Browsing text
 
     Args:
-        title (string): [description]
-        text (string): [description]
+        title (string): Title of thw window.
+        text (string): Text to be browsed.
     """
 
     width = 50

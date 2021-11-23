@@ -36,7 +36,7 @@ def myapp(scr: curses):
 
         # Option branch.
         if m == 2 and mm == 1:
-            cur_tools.text_browser(s, "Browsing demo", lorem.paragraph())
+            cur_tools.text_browser("Browsing demo", lorem.paragraph())
         else:
             cur_tools.info_win(s, ":: Men at work ::")
 
