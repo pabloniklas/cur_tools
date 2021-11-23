@@ -3,11 +3,15 @@ import curses
 from src.cur_tools import cur_tools
 import sys
 import lorem
+import sqlite3
 
-# Main curses app
 
+def myapp(scr: curses):
+    """Main Function
 
-def myapp(scr):
+    Args:
+        scr (curses): Screen curses object.
+    """
     s = cur_tools.curses_init(scr)
 
     myops = {
@@ -32,7 +36,7 @@ def myapp(scr):
 
         # Option branch.
         if m == 2 and mm == 1:
-            cur_tools.text_browse(s, lorem.paragraph())
+            cur_tools.text_browser(s, "Browsing demo", lorem.paragraph())
         else:
             cur_tools.info_win(s, ":: Men at work ::")
 

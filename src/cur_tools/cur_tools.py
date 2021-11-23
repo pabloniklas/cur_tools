@@ -7,8 +7,7 @@
 
 import curses
 from curses import ascii
-import keyboard
-import time
+# import time
 import string
 
 from var_dump import var_dump
@@ -96,13 +95,13 @@ def info_win(s: curses, txt: string):
     h = 7
     wx = int((mh - h) / 2)
     wy = int((mw - w) / 2)
-    wininfo = curses_initwin(h, w, wx, wy, "INFO")
+    wininfo = init_win(h, w, wx, wy, "INFO")
     wininfo.addstr(3, 3, txt)
     wininfo.getch()
-    curses_delwin(wininfo)
+    del_win(wininfo)
 
 
-def curses_initwin(height: int, width: int, wx: int, wy: int, title: str = "", border_type: int = 0) -> curses:
+def init_win(height: int, width: int, wx: int, wy: int, title: str = "", border_type: int = 0):
     """Creates a windows dialog.
 
     Args:
@@ -159,7 +158,7 @@ def curses_initwin(height: int, width: int, wx: int, wy: int, title: str = "", b
     return w
 
 
-def curses_delwin(w: curses):
+def del_win(w: curses):
     """Closes a curses window.
 
     Args:
@@ -258,7 +257,7 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int
     hotkey_list = _curses_menu_hotkey_option(choices)
 
     # Drawing the window
-    window_menu = curses_initwin(len(choices) + 3, max_length + 5, wx, wy)
+    window_menu = init_win(len(choices) + 3, max_length + 5, wx, wy)
 
     # Printing the choices of the submenu
     row = 0
@@ -361,7 +360,7 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int
         window_menu.refresh()
         pressed = window_menu.getch()
 
-    curses_delwin(window_menu)
+    del_win(window_menu)
 
     if pressed == 67:
         return -10
@@ -497,5 +496,91 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict) -> (int, string):
     return idx + 1, submenu_choice
 
 
-def text_browse(stdscr: curses, text: string):
-    width = 20
+def text_justification(text: string, width: int) -> list:
+    """Justifity a text inside the desired width.
+
+    Args:
+        text (string): Text to be justified
+        width (int): Width of the justification.
+
+    Returns:
+        list[str]: list of rows for the justied text.
+    """
+    current_cursor = 0
+    list = []
+
+    # Split the text into a list
+    while current_cursor < len(text) - 1:
+
+        end_cursor = current_cursor + width - 1
+        if end_cursor > len(text) - 1:
+            end_cursor = len(text) - 1
+
+        aux = text[current_cursor:end_cursor + 1]
+
+        # Truncate only where a space is detected
+        while aux[end_cursor - current_cursor] != " " \
+                and end_cursor > current_cursor:  # last space detected
+            end_cursor -= 1
+
+        if end_cursor == current_cursor:  # big word detected
+            end_cursor = current_cursor + width
+            if end_cursor > len(text) - 1:
+                end_cursor = len(text) - 1
+
+        aux = text[current_cursor:end_cursor] \
+            .strip() \
+            .ljust(width)  # up to the last space within width
+
+        list.append(aux)  # up to the last space within width
+        current_cursor = end_cursor
+
+    # TODO: Justification
+
+    return list
+
+
+# TODO: End this function.
+def text_browser(stdscr: curses, title: string, text: string):
+    """Browsing text
+
+    Args:
+        title (string): [description]
+        text (string): [description]
+    """
+
+    width = 50
+    max_height = 20
+    text_list = text_justification(text, width)
+
+    start_idx = 0
+    end_idx = start_idx + max_height - 1 - 2
+
+    if end_idx > len(text_list):
+        end_idx = len(text_list) - 1
+
+    # Drawing the browser
+    w = init_win(max_height, width + 2, 3, 3, title, 0)
+    w.attron(curses.A_REVERSE)
+    w.move(1, 0 + width + 1)
+    w.addch(curses.ACS_UARROW)
+    w.move(max_height - 2, 0 + width + 1)
+    w.addch(curses.ACS_DARROW)
+
+    w.attron(curses.A_NORMAL)
+
+    for i in range(2,max_height - 2):
+        w.move(i, 0 + width + 1)
+        w.addch(curses.ACS_CKBOARD)
+
+    # Populating
+    row = 2
+    for i in range(start_idx, end_idx):
+        w.addstr(row, 1, text_list[i], curses.color_pair(_PAIR_WINDOW_BG))
+        row += 1
+
+    # TODO: Action keys.
+    w.getch()
+
+    # Closing the browser
+    del_win(w)
