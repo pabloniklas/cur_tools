@@ -507,7 +507,7 @@ def text_justification(text: string, width: int) -> list:
         list[str]: list of rows for the justied text.
     """
     current_cursor = 0
-    list = []
+    ulist = []
 
     # Split the text into a list
     while current_cursor < len(text) - 1:
@@ -520,7 +520,7 @@ def text_justification(text: string, width: int) -> list:
 
         # Truncate only where a space is detected
         while aux[end_cursor - current_cursor] != " " \
-                and end_cursor > current_cursor:  # last space detected
+                and end_cursor > current_cursor:  # last line space detected
             end_cursor -= 1
 
         if end_cursor == current_cursor:  # big word detected
@@ -532,12 +532,33 @@ def text_justification(text: string, width: int) -> list:
             .strip() \
             .ljust(width)  # up to the last space within width
 
-        list.append(aux)  # up to the last space within width
+        ulist.append(aux)  # up to the last space within width
         current_cursor = end_cursor
 
     # TODO: Justification
+    jlist = []
+    for uitem in ulist:
+        spaces_to_complete = width - len(uitem)
+        middle = ((len(uitem) / 2) + 1)
+        delta = 0
+        while spaces_to_complete > 0 or delta*2 < middle:
+            if uitem[int(middle) - delta] == " ":
 
-    return list
+                # insert a blank space
+                uitem = uitem[int(middle) - delta] + " " + uitem[int(middle) - delta + 1:]
+                spaces_to_complete -= 1
+
+            elif uitem[int(middle) + delta] == " ":
+
+                # insert a blank space
+                uitem = uitem[int(middle) + delta] + " " + uitem[int(middle) + delta - 1:]
+                spaces_to_complete -= 1
+
+            delta += 1
+
+        jlist.append(uitem)
+
+    return jlist
 
 
 # TODO: End this function.
@@ -569,7 +590,7 @@ def text_browser(title: string, text: string):
 
     w.attron(curses.A_NORMAL)
 
-    for i in range(2,max_height - 2):
+    for i in range(2, max_height - 2):
         w.move(i, 0 + width + 1)
         w.addch(curses.ACS_CKBOARD)
 
