@@ -10,24 +10,37 @@ from curses import ascii
 # import time
 import string
 
-from var_dump import var_dump
+# from var_dump import var_dump
 
 _STATUSBAR_PREFIX = " MenuBar DEMO | "
 
 # Color pair constants. Curses doesn't have them =(
-_PAIR_SCREEN_BG = 1
+_pair_pointer = 1
 
-_PAIR_WINDOW_BG = 2
-_PAIR_WINDOW_TITLE = 3
-_PAIR_WINDOW_SHADOW = 4
+_PAIR_SCREEN_BG = _pair_pointer
+_pair_pointer += 1
 
-_PAIR_ITEM_SELECTED = 5
-_PAIR_HOTKEY_SELECTED = 6
-_PAIR_HOTKEY_UNSELECTED = 7
-_PAIR_ITEM_UNSELECTED = 8
+_PAIR_WINDOW_BG = _pair_pointer
+_pair_pointer += 1
+_PAIR_WINDOW_TITLE = _pair_pointer
+_pair_pointer += 1
+_PAIR_WINDOW_SHADOW = _pair_pointer
+_pair_pointer += 1
+
+_PAIR_ITEM_SELECTED = _pair_pointer
+_pair_pointer += 1
+_PAIR_HOTKEY_SELECTED = _pair_pointer
+_pair_pointer += 1
+_PAIR_HOTKEY_UNSELECTED = _pair_pointer
+_pair_pointer += 1
+_PAIR_ITEM_UNSELECTED = _pair_pointer
+_pair_pointer += 1
+
+_PAIR_ERROR_WINDOW = _pair_pointer
+_pair_pointer += 1
 
 
-def curses_init(scr: curses) -> curses:
+def curses_init(scr: curses.window) -> curses.window:
     """Initialize curses.
 
     Args:
@@ -64,6 +77,9 @@ def curses_init(scr: curses) -> curses:
     curses.init_pair(_PAIR_HOTKEY_SELECTED, curses.COLOR_RED, curses.COLOR_GREEN)
     curses.init_pair(_PAIR_HOTKEY_UNSELECTED, curses.COLOR_RED, curses.COLOR_WHITE)
 
+    # Error Windows color
+    curses.init_pair(_PAIR_ERROR_WINDOW, curses.COLOR_WHITE, curses.COLOR_RED)
+
     scr.bkgd(curses.color_pair(_PAIR_SCREEN_BG))
     scr.clear()
     scr.bkgdset(' ')
@@ -78,14 +94,7 @@ def curses_end():
     curses.endwin()
 
 
-def info_win(s: curses, txt: string):
-    """Creates an info window
-
-    Args:
-        s (curses) : Curses scrren object.
-        txt (string) : Text to be displayed.
-
-    """
+def _popup(s: curses.window, color: curses, title: string, txt: string):
     mh, mw = s.getmaxyx()
     w = len(txt) + 6
 
@@ -95,13 +104,41 @@ def info_win(s: curses, txt: string):
     h = 7
     wx = int((mh - h) / 2)
     wy = int((mw - w) / 2)
-    wininfo = init_win(h, w, wx, wy, "INFO")
+    wininfo: curses.window = init_win(h, w, wx, wy, color, title)
     wininfo.addstr(3, 3, txt)
     wininfo.getch()
     del_win(wininfo)
 
 
-def init_win(height: int, width: int, wx: int, wy: int, title: str = "", border_type: int = 0):
+def info_win(s: curses.window, txt: string):
+    """Creates an info window
+
+    Args:
+        s (curses) : Curses scrren object.
+        txt (string) : Text to be displayed.
+
+    """
+    color = _PAIR_WINDOW_BG
+    title = "Info Window"
+    _popup(s, color, title, txt)
+
+
+def error_win(s: curses.window, txt: string):
+    """Creates an error window
+
+    Args:
+        s (curses) : Curses scrren object.
+        txt (string) : Text to be displayed.
+
+    """
+    color = _PAIR_ERROR_WINDOW
+    title = "Error Window"
+    _popup(s, color, title, txt)
+
+
+def init_win(height: int, width: int, wx: int, wy: int,
+             bgcolor: curses = _PAIR_WINDOW_BG, title: str = "",
+             border_type: int = 0) -> curses.window:
     """Creates a windows dialog.
 
     Args:
@@ -109,6 +146,7 @@ def init_win(height: int, width: int, wx: int, wy: int, title: str = "", border_
         width (int): Windows width.
         wx (int): x coor.
         wy (int): y coor.
+        bgcolor (Curses.color): Background color.
         title (string): Title (could be empty).
         border_type (int): 0 for simple border, 1 for double border. Other values are ignored.
 
@@ -133,7 +171,7 @@ def init_win(height: int, width: int, wx: int, wy: int, title: str = "", border_
         """
         w.border(chr(186), chr(186), chr(186), chr(186), chr(201), chr(187), chr(200), chr(188))
 
-    w.bkgd(' ', curses.color_pair(_PAIR_WINDOW_BG))
+    w.bkgd(' ', curses.color_pair(bgcolor))
 
     # Shadow
     # https://stackoverflow.com/questions/17096352/ncurses-shadow-of-a-window
@@ -158,7 +196,7 @@ def init_win(height: int, width: int, wx: int, wy: int, title: str = "", border_
     return w
 
 
-def del_win(w: curses):
+def del_win(w: curses.window):
     """Closes a curses window.
 
     Args:
@@ -203,7 +241,7 @@ def _curses_menu_hotkey_option(choices: list) -> list:
     return hotkey_list
 
 
-def status_bar(stdscr: curses, intxt: str):
+def status_bar(stdscr: curses.window, intxt: str):
     """Creates a status bar for informational purposes.
 
     Args:
@@ -234,7 +272,35 @@ def status_bar(stdscr: curses, intxt: str):
     stdscr.refresh()
 
 
-def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int:
+def _menu_option_refresh(window_menu: curses.window, row: [int], max_length: int,
+                         choice: [str], hotkey_list: [str],
+                         word_color: int, hotkey_color: int):
+    """INTERNAL - Refresh the menu option
+
+    Args:
+        window_menu (curses.window): Curses window object.
+        row (int): Row number.
+        max_length (int): Options max length
+        choice [str]: Menu option to be written.
+        hotkey_list [str]: Hotkey inside the option.
+        word_color (int): Color combination of the option.
+        hotkey_color (int): Color combination of the hotkey.
+
+    Returns:
+        None.
+    """
+    window_menu.addstr(row + 2,
+                       1,
+                       " " + choice[0].ljust(max_length + 1),
+                       curses.color_pair(word_color))
+
+    window_menu.addstr(row + 2,
+                       hotkey_list[row][2] + 2,
+                       choice[0][hotkey_list[row][2]:hotkey_list[row][2] + 1],
+                       curses.color_pair(hotkey_color))
+
+
+def curses_vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int:
     """Creates a vertical menu of options, allowing the user to choose between them.
 
     Args:
@@ -249,37 +315,28 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int
 
     # Finding the max length between the menu options.
     max_length = 0
-    for x in choices:
-        if len(x[0]) > max_length:
-            max_length = len(x[0])
+    for choice in choices:
+        if len(choice[0]) > max_length:
+            max_length = len(choice[0])
 
     # Discovering the hotkeys
     hotkey_list = _curses_menu_hotkey_option(choices)
 
     # Drawing the window
-    window_menu = init_win(len(choices) + 3, max_length + 5, wx, wy)
+    window_menu: curses.window = init_win(len(choices) + 3, max_length + 5, wx, wy)
 
     # Printing the choices of the submenu
     row = 0
-    for x in choices:
+    for choice in choices:
 
         # First option selected
         if row == 0:
-            window_menu.addstr(row + 2, 1, " " +
-                               x[0].ljust(max_length + 1), curses.color_pair(_PAIR_ITEM_SELECTED))
+            _menu_option_refresh(window_menu, row, max_length, choice, hotkey_list,
+                                 _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
 
-            window_menu.addstr(row + 2,
-                               hotkey_list[row][2] + 2,
-                               x[0][hotkey_list[row][2]:hotkey_list[row][2] + 1],
-                               curses.color_pair(_PAIR_HOTKEY_SELECTED))
         else:
-            window_menu.addstr(row + 2, 1, " " +
-                               x[0].ljust(max_length + 1), curses.color_pair(_PAIR_ITEM_UNSELECTED))
-
-            window_menu.addstr(row + 2,
-                               hotkey_list[row][2] + 2,
-                               x[0][hotkey_list[row][2]:hotkey_list[row][2] + 1],
-                               curses.color_pair(_PAIR_HOTKEY_UNSELECTED))
+            _menu_option_refresh(window_menu, row, max_length, choice, hotkey_list,
+                                 _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
 
         row += 1
 
@@ -287,13 +344,11 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int
 
     # Submenu main cycle.
     highlight_option = 0
-    window_menu.addstr(highlight_option + 2, 1, " " +
-                       choices[highlight_option][0].ljust(max_length + 1), curses.color_pair(_PAIR_ITEM_SELECTED))
 
-    window_menu.addstr(highlight_option + 2,
-                       hotkey_list[highlight_option][2] + 2,
-                       hotkey_list[highlight_option][1],
-                       curses.color_pair(_PAIR_HOTKEY_SELECTED))
+    _menu_option_refresh(window_menu, highlight_option, max_length,
+                         choices[highlight_option],
+                         hotkey_list,
+                         _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
 
     status_bar(stdscr, choices[highlight_option][1])
 
@@ -310,14 +365,11 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int
         # curses.KEY_DOWN: 100000010 = 258
 
         if pressed == 66:  # curses.KEY_DOWN:
-            window_menu.addstr(highlight_option + 2, 1, " " +
-                               choices[highlight_option][0].ljust(max_length + 1),
-                               curses.color_pair(_PAIR_ITEM_UNSELECTED))
 
-            window_menu.addstr(highlight_option + 2,
-                               hotkey_list[highlight_option][2] + 2,
-                               hotkey_list[highlight_option][1],
-                               curses.color_pair(_PAIR_HOTKEY_UNSELECTED))
+            _menu_option_refresh(window_menu, highlight_option, max_length,
+                                 choices[highlight_option],
+                                 hotkey_list,
+                                 _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
 
             status_bar(stdscr, choices[highlight_option][1])
 
@@ -330,14 +382,10 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int
         # curses.KEY_UP: 100000011 = 259
 
         if pressed == 65:  # curses.KEY_UP:
-            window_menu.addstr(highlight_option + 2, 1, " " +
-                               choices[highlight_option][0].ljust(max_length + 1),
-                               curses.color_pair(_PAIR_ITEM_UNSELECTED))
-
-            window_menu.addstr(highlight_option + 2,
-                               hotkey_list[highlight_option][2] + 2,
-                               hotkey_list[highlight_option][1],
-                               curses.color_pair(_PAIR_HOTKEY_UNSELECTED))
+            _menu_option_refresh(window_menu, highlight_option, max_length,
+                                 choices[highlight_option],
+                                 hotkey_list,
+                                 _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
 
             status_bar(stdscr, choices[highlight_option][1])
 
@@ -347,15 +395,10 @@ def curses_vertical_menu(stdscr: curses, choices: list, wx: int, wy: int) -> int
                 highlight_option = 0
 
         # Draw the new option
-        window_menu.addstr(highlight_option + 2, 1, " " +
-                           choices[highlight_option][0].ljust(max_length + 1), curses.color_pair(_PAIR_ITEM_SELECTED))
-
-        status_bar(stdscr, choices[highlight_option][1])
-
-        window_menu.addstr(highlight_option + 2,
-                           hotkey_list[highlight_option][2] + 2,
-                           hotkey_list[highlight_option][1],
-                           curses.color_pair(_PAIR_HOTKEY_SELECTED))
+        _menu_option_refresh(window_menu, highlight_option, max_length,
+                             choices[highlight_option],
+                             hotkey_list,
+                             _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
 
         window_menu.refresh()
         pressed = window_menu.getch()
@@ -392,7 +435,7 @@ def _search_in_list(list: list, key: string, idx: int) -> int:
     return x
 
 
-def curses_horizontal_menu(stdscr: curses, options_dict: dict) -> (int, string):
+def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> [int, int]:
     """Generates the classic menu bar.
 
     Args:
@@ -474,7 +517,7 @@ def curses_horizontal_menu(stdscr: curses, options_dict: dict) -> (int, string):
                     idx -= 1
 
             # Enter
-            elif submenu_choice >= 0 and submenu_choice < len(submenu_options):
+            elif 0 <= submenu_choice < len(submenu_options):
                 return idx + 1, submenu_choice
 
             # Any other key
@@ -541,14 +584,16 @@ def text_justification(text: string, width: int) -> list:
         spaces_to_complete = width - len(uitem)
         middle = ((len(uitem) / 2) + 1)
         delta = 0
-        while spaces_to_complete > 0 or delta*2 < middle:
-            if uitem[int(middle) - delta] == " ":
+        while spaces_to_complete > 0 or delta < middle:
+            if int(middle) - delta < 0:
+                uitem[int(middle) - delta] == " "
 
                 # insert a blank space
                 uitem = uitem[int(middle) - delta] + " " + uitem[int(middle) - delta + 1:]
                 spaces_to_complete -= 1
 
-            elif uitem[int(middle) + delta] == " ":
+            elif int(middle) + delta < len(uitem):
+                uitem[int(middle) + delta] == " "
 
                 # insert a blank space
                 uitem = uitem[int(middle) + delta] + " " + uitem[int(middle) + delta - 1:]
@@ -581,7 +626,7 @@ def text_browser(title: string, text: string):
         end_idx = len(text_list) - 1
 
     # Drawing the browser
-    w = init_win(max_height, width + 2, 3, 3, title, 0)
+    w: curses.window = init_win(max_height, width + 2, 3, 3, _PAIR_WINDOW_BG, title, 0)
     w.attron(curses.A_REVERSE)
     w.move(1, 0 + width + 1)
     w.addch(curses.ACS_UARROW)

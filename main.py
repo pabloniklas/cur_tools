@@ -28,6 +28,7 @@ def myapp(scr: curses):
              ]
              }
 
+    cur_tools.status_bar(s, "Press Enter or ALT+KEY to start the demo.")
     m, mm = cur_tools.curses_horizontal_menu(s, myops)
 
     while m != 1 or mm != 1:     # File->Exit
@@ -36,7 +37,15 @@ def myapp(scr: curses):
 
         # Option branch.
         if m == 2 and mm == 1:
-            cur_tools.text_browser("Browsing demo", lorem.paragraph())
+            file = "sample.txt"
+            try:
+                file = open(file)
+            except FileNotFoundError:
+                cur_tools.error_win(s, f"File '{file}' not found")
+            else:
+                line = file.read().replace("\n", " ")
+                cur_tools.text_browser("Browsing demo", line)
+                file.close()
         else:
             cur_tools.info_win(s, ":: Men at work ::")
 
