@@ -16,17 +16,18 @@ _STATUSBAR_PREFIX = " MenuBar DEMO | "
 
 # Color pair constants. Curses doesn't have them =(
 _pair_pointer = 1
-
 _PAIR_SCREEN_BG = _pair_pointer
-_pair_pointer += 1
 
+_pair_pointer += 1
 _PAIR_WINDOW_BG = _pair_pointer
+
 _pair_pointer += 1
 _PAIR_WINDOW_TITLE = _pair_pointer
+
 _pair_pointer += 1
 _PAIR_WINDOW_SHADOW = _pair_pointer
-_pair_pointer += 1
 
+_pair_pointer += 1
 _PAIR_ITEM_SELECTED = _pair_pointer
 _pair_pointer += 1
 _PAIR_HOTKEY_SELECTED = _pair_pointer
@@ -34,10 +35,9 @@ _pair_pointer += 1
 _PAIR_HOTKEY_UNSELECTED = _pair_pointer
 _pair_pointer += 1
 _PAIR_ITEM_UNSELECTED = _pair_pointer
-_pair_pointer += 1
 
-_PAIR_ERROR_WINDOW = _pair_pointer
 _pair_pointer += 1
+_PAIR_ERROR_WINDOW = _pair_pointer
 
 
 def curses_init(scr: curses.window) -> curses.window:
@@ -352,12 +352,12 @@ def curses_vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int)
 
     status_bar(stdscr, choices[highlight_option][1])
 
-    ENTER = curses.ascii.NL
+    enter_key = curses.ascii.NL
 
     pressed = window_menu.getch()
     while pressed != 67 and \
             pressed != 68 and \
-            pressed != ENTER:
+            pressed != enter_key:
 
         # curses_status_bar(stdscr, "STATUS BAR | pressed: {}".format(pressed))
 
@@ -413,11 +413,11 @@ def curses_vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int)
         return highlight_option + 1
 
 
-def _search_in_list(list: list, key: string, idx: int) -> int:
+def _search_in_list(my_list: list, key: string, idx: int) -> int:
     """INTERNAL - Search a string in a list of arrays.
 
     Args:
-        list (list): The list.
+        my_list (list): The list.
         key (string): The string to be searched in the list.
         idx (int): 
 
@@ -426,7 +426,7 @@ def _search_in_list(list: list, key: string, idx: int) -> int:
     """
     x = 0
 
-    for item in list:
+    for item in my_list:
         if item[idx] == key.lower() or item[idx] == key.upper():
             return x
         else:
@@ -435,7 +435,7 @@ def _search_in_list(list: list, key: string, idx: int) -> int:
     return x
 
 
-def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> [int, int]:
+def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> tuple:
     """Generates the classic menu bar.
 
     Args:
