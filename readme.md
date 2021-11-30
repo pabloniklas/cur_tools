@@ -50,16 +50,16 @@ with submenus
 
 ```python
 ops = {
-        "Menu Option 1": [ 
-            [ "Submenu option 1", "Submenu option 1 status bar help"],
-            ["Submenu option 2" , "Submenu option 2 status bar help"]
-        ],
-       "Menu Option 2": [ 
-            ["Submenu option 3" "Submenu option 1 status bar help"]
-       ]
-      }
+    "Menu Option 1": [
+        ["Submenu option 1", "Submenu option 1 status bar help"],
+        ["Submenu option 2", "Submenu option 2 status bar help"]
+    ],
+    "Menu Option 2": [
+        ["Submenu option 3" "Submenu option 1 status bar help"]
+    ]
+}
 
-user_choice = pyCurses.curses_horizontal_menu(s, myops)
+user_choice = pyCurses.menu_bar(s, myops)
 ```
 
 #### Example
@@ -74,20 +74,20 @@ def myapp(scr):
     s = cur_tools.curses_init(scr)
 
     myops = {
-             "File": [
-                ["Exit", "Exit this demo."]
-             ],
-             "Demos": [
-                ["Browse", "Database browsing demo."],
-                ["Demo 2", "Demo 2"],
-                ["Demo 3", "Demo 3"]
-             ],
-             "Help": [
-                ["About", "About this app."]
-             ]
-             }
+        "File": [
+            ["Exit", "Exit this demo."]
+        ],
+        "Demos": [
+            ["Browse", "Database browsing demo."],
+            ["Demo 2", "Demo 2"],
+            ["Demo 3", "Demo 3"]
+        ],
+        "Help": [
+            ["About", "About this app."]
+        ]
+    }
 
-    ch = cur_tools.curses_horizontal_menu(s, myops)
+    ch = cur_tools.menu_bar(s, myops)
     cur_tools.status_bar(s, f'Opcion: {ch}')
     sys.stdin.read(1)
 

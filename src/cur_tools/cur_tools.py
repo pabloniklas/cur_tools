@@ -6,20 +6,24 @@
 #
 
 import curses
-from curses import ascii
+import re
 # import time
 import string
+import textwrap
+from curses import ascii
 
 # from var_dump import var_dump
 
-_STATUSBAR_PREFIX = " MenuBar DEMO | "
+_STATUSBAR_PREFIX = " StatusBar | "
 
 # Color pair constants. Curses doesn't have them =(
 _pair_pointer = 1
 _PAIR_SCREEN_BG = _pair_pointer
 
 _pair_pointer += 1
-_PAIR_WINDOW_BG = _pair_pointer
+_PAIR_WINDOW_BG_LOWER = _pair_pointer
+_pair_pointer += 1
+_PAIR_WINDOW_BG_UPPER = _pair_pointer
 
 _pair_pointer += 1
 _PAIR_WINDOW_TITLE = _pair_pointer
@@ -63,7 +67,8 @@ def curses_init(scr: curses.window) -> curses.window:
     curses.init_pair(_PAIR_SCREEN_BG, curses.COLOR_YELLOW, curses.COLOR_BLUE)
 
     # Windows BG
-    curses.init_pair(_PAIR_WINDOW_BG, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(_PAIR_WINDOW_BG_LOWER, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    # curses.init_pair(_PAIR_WINDOW_BG_UPPER, curses.COLOR_WHITE, curses.COLOR_WHITE)
 
     # Window shadow
     curses.init_pair(_PAIR_WINDOW_SHADOW, curses.COLOR_WHITE, curses.COLOR_BLACK)
@@ -104,10 +109,10 @@ def _popup(s: curses.window, color: curses, title: string, txt: string):
     h = 7
     wx = int((mh - h) / 2)
     wy = int((mw - w) / 2)
-    wininfo: curses.window = init_win(h, w, wx, wy, color, title)
+    wininfo: curses.window = init_win(h, w, wx, wy, title, color)
     wininfo.addstr(3, 3, txt)
     wininfo.getch()
-    del_win(wininfo)
+    end_win(wininfo)
 
 
 def info_win(s: curses.window, txt: string):
@@ -118,7 +123,7 @@ def info_win(s: curses.window, txt: string):
         txt (string) : Text to be displayed.
 
     """
-    color = _PAIR_WINDOW_BG
+    color = _PAIR_WINDOW_BG_LOWER
     title = "Info Window"
     _popup(s, color, title, txt)
 
@@ -136,8 +141,7 @@ def error_win(s: curses.window, txt: string):
     _popup(s, color, title, txt)
 
 
-def init_win(height: int, width: int, wx: int, wy: int,
-             bgcolor: curses = _PAIR_WINDOW_BG, title: str = "",
+def init_win(height: int, width: int, wx: int, wy: int, title: str = "", bgcolor: curses = _PAIR_WINDOW_BG_LOWER,
              border_type: int = 0) -> curses.window:
     """Creates a windows dialog.
 
@@ -146,8 +150,8 @@ def init_win(height: int, width: int, wx: int, wy: int,
         width (int): Windows width.
         wx (int): x coor.
         wy (int): y coor.
-        bgcolor (Curses.color): Background color.
         title (string): Title (could be empty).
+        bgcolor (Curses.color): Background color.
         border_type (int): 0 for simple border, 1 for double border. Other values are ignored.
 
     Returns:
@@ -158,7 +162,13 @@ def init_win(height: int, width: int, wx: int, wy: int,
 
     if border_type == 0:
         w.box()
-    else:
+        # for x in range(0, width):
+        #     w.move(0, x)
+        #     w.addch(curses.ACS_HLINE)
+        #
+        # w.addstr(0, 5, "*",
+        #          curses.color_pair(_PAIR_WINDOW_BG_UPPER) | curses.A_BOLD | curses.A_REVERSE)
+
         """
         ls - left side,
         rs - right side,
@@ -169,13 +179,13 @@ def init_win(height: int, width: int, wx: int, wy: int,
         bl - bottom left-hand corner, and
         br - bottom right-hand corner. 
         """
-        w.border(chr(186), chr(186), chr(186), chr(186), chr(201), chr(187), chr(200), chr(188))
+        # w.border(chr(186), chr(186), chr(186), chr(186), chr(201), chr(187), chr(200), chr(188))
 
     w.bkgd(' ', curses.color_pair(bgcolor))
 
     # Shadow
     # https://stackoverflow.com/questions/17096352/ncurses-shadow-of-a-window
-    # w.attron(PAIR_WINDOW_SHADOW)
+    # w.attron(_PAIR_WINDOW_SHADOW)
     #
     # for i in range(wy + 2, wy + width + 1):
     #     w.move((wx + height), i)
@@ -186,8 +196,8 @@ def init_win(height: int, width: int, wx: int, wy: int,
     #     w.addch(' ')
     #     w.move(i, (wy + width + 1))
     #     w.addch(' ')
-
-    w.attroff(_PAIR_WINDOW_SHADOW)
+    #
+    # w.attroff(_PAIR_WINDOW_SHADOW)
 
     if title != "":
         col = int((width - len(title) - 4) / 2)
@@ -196,7 +206,7 @@ def init_win(height: int, width: int, wx: int, wy: int,
     return w
 
 
-def del_win(w: curses.window):
+def end_win(w: curses.window):
     """Closes a curses window.
 
     Args:
@@ -266,9 +276,9 @@ def status_bar(stdscr: curses.window, intxt: str):
 
     txt += " "
 
-    stdscr.addstr(height - 1, 0, txt, curses.color_pair(_PAIR_WINDOW_BG))
+    stdscr.addstr(height - 1, 0, txt, curses.color_pair(_PAIR_WINDOW_BG_LOWER))
     stdscr.addstr(height - 1, len(txt) - 1, " " *
-                  (width - len(txt)), curses.color_pair(_PAIR_WINDOW_BG))
+                  (width - len(txt)), curses.color_pair(_PAIR_WINDOW_BG_LOWER))
     stdscr.refresh()
 
 
@@ -300,7 +310,7 @@ def _menu_option_refresh(window_menu: curses.window, row: [int], max_length: int
                        curses.color_pair(hotkey_color))
 
 
-def curses_vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int:
+def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int:
     """Creates a vertical menu of options, allowing the user to choose between them.
 
     Args:
@@ -323,7 +333,7 @@ def curses_vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int)
     hotkey_list = _curses_menu_hotkey_option(choices)
 
     # Drawing the window
-    window_menu: curses.window = init_win(len(choices) + 3, max_length + 5, wx, wy)
+    window_menu: curses.window = init_win(len(choices) + 3, max_length + 4, wx, wy)
 
     # Printing the choices of the submenu
     row = 0
@@ -352,12 +362,10 @@ def curses_vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int)
 
     status_bar(stdscr, choices[highlight_option][1])
 
-    enter_key = curses.ascii.NL
-
     pressed = window_menu.getch()
     while pressed != 67 and \
             pressed != 68 and \
-            pressed != enter_key:
+            pressed != curses.ascii.NL:
 
         # curses_status_bar(stdscr, "STATUS BAR | pressed: {}".format(pressed))
 
@@ -400,10 +408,12 @@ def curses_vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int)
                              hotkey_list,
                              _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
 
+        status_bar(stdscr, choices[highlight_option][1])
+
         window_menu.refresh()
         pressed = window_menu.getch()
 
-    del_win(window_menu)
+    end_win(window_menu)
 
     if pressed == 67:
         return -10
@@ -435,7 +445,7 @@ def _search_in_list(my_list: list, key: string, idx: int) -> int:
     return x
 
 
-def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> tuple:
+def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
     """Generates the classic menu bar.
 
     Args:
@@ -462,7 +472,7 @@ def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> tuple:
     hotkey_list = _curses_menu_hotkey_option(menubar_options)
     idx = 0
     for opc in menubar_options:
-        stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(_PAIR_WINDOW_BG))
+        stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(_PAIR_WINDOW_BG_LOWER))
         stdscr.addstr(
             0, col + hotkey_list[idx][2] + 1, hotkey_list[idx][1], curses.color_pair(_PAIR_WINDOW_TITLE))
 
@@ -470,7 +480,7 @@ def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> tuple:
         idx += 1
         list_cols.append(col)
 
-    stdscr.addstr(0, col, " " * (width - col), curses.color_pair(_PAIR_WINDOW_BG))
+    stdscr.addstr(0, col, " " * (width - col), curses.color_pair(_PAIR_WINDOW_BG_LOWER))
     status_bar(stdscr, "Make a choice.")
     stdscr.refresh()
 
@@ -501,7 +511,7 @@ def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> tuple:
 
         # Calling the vertical menu
         submenu_options = options_dict[_idx]
-        submenu_choice = curses_vertical_menu(
+        submenu_choice = vertical_menu(
             stdscr, submenu_options, 1, list_cols[idx])
 
         while (submenu_choice == -10) or (submenu_choice == -11) or (submenu_choice == -1):
@@ -531,12 +541,79 @@ def curses_horizontal_menu(stdscr: curses.window, options_dict: dict) -> tuple:
                         pass
 
             submenu_options = options_dict[menubar_options[idx]]
-            submenu_choice = curses_vertical_menu(
+            submenu_choice = vertical_menu(
                 stdscr, submenu_options, 1, list_cols[idx])
     else:
-        info_win(stdscr, f"Letra '{key}' no encontrada en la lista {hotkey_list}")
+        info_win(stdscr, f"Char '{key}' not found in list {hotkey_list}")
 
     return idx + 1, submenu_choice
+
+
+def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: string,
+                     length: int, help="", type: int = 0) -> string:
+    """Creates a text field input.
+
+    Args:
+        s (curses.window): Curses screen object.
+        w (curses.window): Curses window object.
+        x (int): row.
+        y (int): col.
+        label (string): text
+        length (int): max length of the text field
+        help (string): Help text.
+        type (int): ToDo.
+
+    Returns:
+        String: The value of the input.
+    """
+
+    value = ""
+
+    status_bar(s, help)
+
+    # Label
+    w.addstr(x, y, label + ":", curses.color_pair(_PAIR_WINDOW_BG_LOWER))
+
+    # Draw the gap
+    field_y = y + len(label) + 2
+    field_x = x
+    w.addstr(field_x, field_y, ' '.ljust(length), curses.color_pair(_PAIR_SCREEN_BG))
+
+    # Main cicle.
+    curses.curs_set(1)  # make cursor visible
+    curses.echo(False)
+    w.nodelay(True)
+    key = w.getch()
+    cursor_offset = 0
+    w.move(field_x, field_y + cursor_offset)
+
+    while key != curses.ascii.NL and key != curses.ascii.ESC:
+
+        if curses.ascii.isalpha(key):
+            w.move(field_x, field_y + cursor_offset)
+            w.addch(key)
+            value += chr(key)
+            cursor_offset += 1
+        elif key in [ord('\b'), chr(127),
+                     curses.ascii.BS,
+                     curses.KEY_BACKSPACE
+                     ]:
+            w.addch(" ")
+            value = value[:len(value) - 1]
+            cursor_offset -= 1
+            w.move(field_x, field_y + cursor_offset)
+
+        w.refresh()
+        key = w.getch()
+
+    # Cancel Input when ESC is pressed
+    if key == curses.ascii.ESC:
+        value = ""
+
+    curses.curs_set(0)  # make cursor invisible
+    end_win(w)
+
+    return value
 
 
 def text_justification(text: string, width: int) -> list:
@@ -578,42 +655,98 @@ def text_justification(text: string, width: int) -> list:
         ulist.append(aux)  # up to the last space within width
         current_cursor = end_cursor
 
-    # TODO: Justification
     jlist = []
     for uitem in ulist:
-        spaces_to_complete = width - len(uitem)
-        middle = ((len(uitem) / 2) + 1)
-        delta = 0
-        while spaces_to_complete > 0 or delta < middle:
-            if int(middle) - delta < 0:
-                uitem[int(middle) - delta] == " "
-
-                # insert a blank space
-                uitem = uitem[int(middle) - delta] + " " + uitem[int(middle) - delta + 1:]
-                spaces_to_complete -= 1
-
-            elif int(middle) + delta < len(uitem):
-                uitem[int(middle) + delta] == " "
-
-                # insert a blank space
-                uitem = uitem[int(middle) + delta] + " " + uitem[int(middle) + delta - 1:]
-                spaces_to_complete -= 1
-
-            delta += 1
-
-        jlist.append(uitem)
+        jlist.append(align_string(uitem, width))
 
     return jlist
 
 
-# TODO: End this function.
-def text_browser(title: string, text: string):
+def _items_len(thelist):
+    return sum([len(x) for x in thelist])
+
+
+# https://code.activestate.com/recipes/414870-align-text-string-using-spaces-between-words-to-fi/
+def align_string(s, width, last_paragraph_line=0):
+    '''
+    align string to specified width
+    '''
+    # detect and save leading whitespace
+    lead_re = re.compile(r'(^\s+)(.*)$')
+    m = lead_re.match(s)
+    if m is None:
+        left, right, w = '', s, width
+    else:
+        left, right, w = m.group(1), m.group(2), width - len(m.group(1))
+
+    items = right.split()
+
+    # add required space to each words, exclude last item
+    for i in range(len(items) - 1):
+        items[i] += ' '
+
+    if not last_paragraph_line:
+        # number of spaces to add
+        left_count = w - _items_len(items)
+        while left_count > 0 and len(items) > 1:
+            for i in range(len(items) - 1):
+                items[i] += ' '
+                left_count -= 1
+                if left_count < 1:
+                    break
+
+    res = left + ''.join(items)
+    return res
+
+
+def align_paragraph(paragraph, width, debug=0):
+    '''
+    align paragraph to specified width,
+    returns list of paragraph lines
+    '''
+    lines = list()
+    if type(paragraph) == type(lines):
+        lines.extend(paragraph)
+    elif type(paragraph) == type(''):
+        lines.append(paragraph)
+    elif type(paragraph) == type(tuple()):
+        lines.extend(list(paragraph))
+    else:
+        raise TypeError('Unsopported paragraph type: %r' % type(paragraph))
+
+    flatten_para = ' '.join(lines)
+
+    splitted = textwrap.wrap(flatten_para, width)
+    if debug:
+        print('textwrap:\n%s\n' % '\n'.join(splitted))
+
+    wrapped = list()
+    while len(splitted) > 0:
+        line = splitted.pop(0)
+        if len(splitted) == 0:
+            last_paragraph_line = 1
+        else:
+            last_paragraph_line = 0
+        aligned = align_string(line, width, last_paragraph_line)
+        wrapped.append(aligned)
+
+    if debug:
+        print('textwrap & align_string:\n%s\n' % '\n'.join(wrapped))
+
+    return wrapped
+
+
+# TODO: Action keys
+def text_browser(s: curses.window, title: string, text: string):
     """Browsing text
 
     Args:
+        s (Curses.window): Curses screen object.
         title (string): Title of thw window.
         text (string): Text to be browsed.
     """
+
+    status_bar(s, "Browsing text.")
 
     width = 50
     max_height = 20
@@ -626,27 +759,39 @@ def text_browser(title: string, text: string):
         end_idx = len(text_list) - 1
 
     # Drawing the browser
-    w: curses.window = init_win(max_height, width + 2, 3, 3, _PAIR_WINDOW_BG, title, 0)
+    w: curses.window = init_win(max_height, width + 4, 3, 3, title, _PAIR_WINDOW_BG_LOWER, 0)
     w.attron(curses.A_REVERSE)
-    w.move(1, 0 + width + 1)
+    w.move(1, 0 + width + 3)
     w.addch(curses.ACS_UARROW)
-    w.move(max_height - 2, 0 + width + 1)
+    w.move(max_height - 2, 0 + width + 3)
     w.addch(curses.ACS_DARROW)
 
     w.attron(curses.A_NORMAL)
 
     for i in range(2, max_height - 2):
-        w.move(i, 0 + width + 1)
+        w.move(i, 0 + width + 3)
         w.addch(curses.ACS_CKBOARD)
 
     # Populating
     row = 2
     for i in range(start_idx, end_idx):
-        w.addstr(row, 1, text_list[i], curses.color_pair(_PAIR_WINDOW_BG))
+        w.addstr(row, 2, text_list[i], curses.color_pair(_PAIR_WINDOW_BG_LOWER))
         row += 1
 
-    # TODO: Action keys.
-    w.getch()
+    pressed = w.getch()
+    while pressed != 67 and \
+            pressed != 68 and \
+            pressed != curses.ascii.NL and \
+            pressed != curses.ascii.ESC:
+
+        if pressed == 66:  # curses.KEY_DOWN:
+            pass
+
+        if pressed == 65:  # curses.KEY_UP:
+            pass
+
+        w.refresh()
+        pressed = w.getch()
 
     # Closing the browser
-    del_win(w)
+    end_win(w)
