@@ -62,7 +62,7 @@ ops = {
 user_choice = pyCurses.menu_bar(s, myops)
 ```
 
-#### Example
+#### Examples
 
 ```python
 import curses
@@ -70,7 +70,12 @@ from src.cur_tools import cur_tools
 import sys
 
 
-def myapp(scr):
+def myapp(scr: curses.window):
+    """Main Function
+
+    Args:
+        scr (curses): Screen curses object.
+    """
     s = cur_tools.curses_init(scr)
 
     myops = {
@@ -78,8 +83,8 @@ def myapp(scr):
             ["Exit", "Exit this demo."]
         ],
         "Demos": [
-            ["Browse", "Database browsing demo."],
-            ["Demo 2", "Demo 2"],
+            ["Browse", "Text browsing demo."],
+            ["Forms", "Forms demo."],
             ["Demo 3", "Demo 3"]
         ],
         "Help": [
@@ -87,10 +92,34 @@ def myapp(scr):
         ]
     }
 
-    ch = cur_tools.menu_bar(s, myops)
-    cur_tools.status_bar(s, f'Opcion: {ch}')
-    sys.stdin.read(1)
+    cur_tools.status_bar(s, "Press Enter or ALT+KEY to start the demo.")
+    m, mm = cur_tools.menu_bar(s, myops)
 
+    while m != 1 or mm != 1:  # File->Exit
+
+        cur_tools.status_bar(s, f'Option: ({m} , {mm})')
+
+        # Option branch.
+        if m == 2 and mm == 1:
+            file = "sample.txt"
+            try:
+                file = open(file)
+            except FileNotFoundError:
+                cur_tools.error_win(s, f"File '{file}' not found")
+            else:
+                line = file.read().replace("\n", " ")
+                cur_tools.text_browser(s,"Browsing demo", line)
+                file.close()
+        elif m == 2 and mm == 2:
+            w = cur_tools.init_win(15, 50, 5, 5, "Form Demo")
+            data = cur_tools.input_text_field(s, w, 3, 3, "Nombre", 20, "Text input demo.")
+            cur_tools.info_win(w, data)
+            cur_tools.end_win(w)
+
+        else:
+            cur_tools.info_win(s, ":: Men at work ::")
+
+        m, mm = cur_tools.menu_bar(s, myops)
 
 # Python's entry point
 if __name__ == '__main__':
