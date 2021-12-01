@@ -29,6 +29,9 @@ _pair_pointer += 1
 _PAIR_WINDOW_TITLE = _pair_pointer
 
 _pair_pointer += 1
+_PAIR_INPUT_FIELD = _pair_pointer
+
+_pair_pointer += 1
 _PAIR_WINDOW_SHADOW = _pair_pointer
 
 _pair_pointer += 1
@@ -75,6 +78,9 @@ def curses_init(scr: curses.window) -> curses.window:
 
     # Window title
     curses.init_pair(_PAIR_WINDOW_TITLE, curses.COLOR_RED, curses.COLOR_WHITE)
+
+    # Input type field
+    curses.init_pair(_PAIR_INPUT_FIELD, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
     # Menu Items
     curses.init_pair(_PAIR_ITEM_SELECTED, curses.COLOR_BLACK, curses.COLOR_GREEN)
@@ -549,6 +555,27 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
     return idx + 1, submenu_choice
 
 
+def _field_input_type(w: curses.window, input_type: str, field_x: int,
+                      field_y: int, cursor_offset: int,
+                      length: int, key: curses.ascii, value: str) -> [int, str]:
+    w.move(field_x, field_y + cursor_offset)
+    if eval(input_type) and cursor_offset < length:
+        w.addch(key)
+        value += chr(key)
+        cursor_offset += 1
+    elif key in [ord('\b'), 127,
+                 curses.ascii.BS,
+                 curses.KEY_BACKSPACE
+                 ]:
+        value = value[:len(value) - 1]
+        if cursor_offset > 0:
+            cursor_offset -= 1
+            w.move(field_x, field_y + cursor_offset)
+            w.addch(" ")
+
+    return cursor_offset, value
+
+
 def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: string,
                      length: int, help="", type: int = 0) -> string:
     """Creates a text field input.
@@ -561,7 +588,7 @@ def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: 
         label (string): text
         length (int): max length of the text field
         help (string): Help text.
-        type (int): ToDo.
+        type (int): Type of validation. 0: Alphabetic only.
 
     Returns:
         String: The value of the input.
@@ -577,7 +604,7 @@ def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: 
     # Draw the gap
     field_y = y + len(label) + 2
     field_x = x
-    w.addstr(field_x, field_y, ' '.ljust(length), curses.color_pair(_PAIR_SCREEN_BG))
+    w.addstr(field_x, field_y, ' '.ljust(length + 1), curses.color_pair(_PAIR_INPUT_FIELD))
 
     # Main cicle.
     curses.curs_set(1)  # make cursor visible
@@ -586,23 +613,16 @@ def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: 
     key = w.getch()
     cursor_offset = 0
     w.move(field_x, field_y + cursor_offset)
-
+    w.attron(curses.color_pair(_PAIR_INPUT_FIELD))
     while key != curses.ascii.NL and key != curses.ascii.ESC:
 
-        if curses.ascii.isalpha(key):
-            w.move(field_x, field_y + cursor_offset)
-            w.addch(key)
-            value += chr(key)
-            cursor_offset += 1
-        elif key in [ord('\b'), chr(127),
-                     curses.ascii.BS,
-                     curses.KEY_BACKSPACE
-                     ]:
-            w.addch(" ")
-            value = value[:len(value) - 1]
-            cursor_offset -= 1
-            w.move(field_x, field_y + cursor_offset)
+        if type == 0:
+            bool_expr_type = "curses.ascii.isalpha(key)"
 
+        w.move(field_x, field_y + cursor_offset)
+        cursor_offset, value = _field_input_type(w, bool_expr_type,
+                                                 field_x, field_y,
+                                                 cursor_offset, length, key, value)
         w.refresh()
         key = w.getch()
 
@@ -736,7 +756,6 @@ def align_paragraph(paragraph, width, debug=0):
     return wrapped
 
 
-# TODO: Action keys
 def text_browser(s: curses.window, title: string, text: string):
     """Browsing text
 
@@ -778,6 +797,7 @@ def text_browser(s: curses.window, title: string, text: string):
         w.addstr(row, 2, text_list[i], curses.color_pair(_PAIR_WINDOW_BG_LOWER))
         row += 1
 
+    # TODO: Action keys
     pressed = w.getch()
     while pressed != 67 and \
             pressed != 68 and \
