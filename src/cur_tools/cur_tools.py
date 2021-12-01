@@ -558,6 +558,22 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
 def _field_input_type(w: curses.window, input_type: str, field_x: int,
                       field_y: int, cursor_offset: int,
                       length: int, key: curses.ascii, value: str) -> [int, str]:
+    """Logic behind the input field.
+
+    Args:
+        w (curses.window): A curses window object.
+        input_type (string): Boolean validation expression
+        field_x (int): x coordinate.
+        field_y (int): y coordinate.
+        cursor_offset: Cursor position inside the field.
+        length (int): Field length.
+        key (curses.ascii): The key pressed.
+        value: The data in the field.
+
+    Returns:
+        The tuple [cursor_offset, value]
+    """
+
     w.move(field_x, field_y + cursor_offset)
     if eval(input_type) and cursor_offset < length:
         w.addch(key)
@@ -588,7 +604,10 @@ def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: 
         label (string): text
         length (int): max length of the text field
         help (string): Help text.
-        type (int): Type of validation. 0: Alphabetic only.
+        type (int): Type of validation:
+                0 => Alphanumeric only.
+                1 => Numeric only.
+                2 => Alphabetic only.
 
     Returns:
         String: The value of the input.
@@ -614,9 +633,14 @@ def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: 
     cursor_offset = 0
     w.move(field_x, field_y + cursor_offset)
     w.attron(curses.color_pair(_PAIR_INPUT_FIELD))
+
     while key != curses.ascii.NL and key != curses.ascii.ESC:
 
         if type == 0:
+            bool_expr_type = "curses.ascii.isalnum(key)"
+        elif type == 1:
+            bool_expr_type = "curses.ascii.isdigit(key)"
+        elif type == 2:
             bool_expr_type = "curses.ascii.isalpha(key)"
 
         w.move(field_x, field_y + cursor_offset)
@@ -646,6 +670,7 @@ def text_justification(text: string, width: int) -> list:
     Returns:
         list[str]: list of rows for the justied text.
     """
+
     current_cursor = 0
     ulist = []
 
