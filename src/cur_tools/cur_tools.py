@@ -48,7 +48,6 @@ _PAIR_ITEM_UNSELECTED = _pair_pointer
 _pair_pointer += 1
 _PAIR_ERROR_WINDOW = _pair_pointer
 
-
 def curses_init(scr: curses.window) -> curses.window:
     """Initialize curses.
 
@@ -716,7 +715,7 @@ def __items_len(thelist):
 
 
 # https://code.activestate.com/recipes/414870-align-text-string-using-spaces-between-words-to-fi/
-def align_string(s, width, last_paragraph_line=0):
+def align_string(s: string, width: int, last_paragraph_line: int = 0):
     '''
     align string to specified width
     '''
@@ -788,50 +787,84 @@ def __text_browser_refresh(w: curses.window, start_idx: int,
     for i in range(start_idx, end_idx):
         w.addstr(row, 2, text_list[i], curses.color_pair(_PAIR_WINDOW_BG_LOWER))
         row += 1
+
     w.refresh()
 
 
-def text_browser(s: curses.window, title: string, text: string):
-    """Browsing text
+def __text_browser_refresh_bar(w: curses.window, start_idx: int, height: int, scale: int, width: int):
+    """INTERNAL - Browser of the refresh bar
+
+    w (curses.window): Curses window object
+    start_idx (int): Index stat
+    height (int): Height of the window
+    scale (int): Scale (length)
+    width (int): Width of the window
+
+    """
+    if start_idx > 0:
+        w.move(start_idx + 1, 0 + width + 3)
+        w.addch(curses.ACS_DIAMOND)
+
+    for i in range(start_idx + 1, scale + start_idx - 1):
+        w.move(i + 1, 0 + width + 3)
+        w.addch(curses.ACS_CKBOARD)
+
+    if scale + start_idx < height - 2:
+        w.move(scale + start_idx, 0 + width + 3)
+        w.addch(curses.ACS_DIAMOND)
+
+    w.refresh()
+
+
+def text_browser(s: curses.window, title: string, text: string, width: int = 50, height: int = 20):
+    """Text Browsing
 
     Args:
         s (Curses.window): Curses screen object.
-        title (string): Title of thw window.
+        title (string): Title of the window.
         text (string): Text to be browsed.
+        width (int): width of the browser.
+        height (int): height of the browser.
     """
 
     status_bar(s, "Browsing text.")
 
-    width = 50
-    max_height = 20
     text_list = text_justification(text, width)
     text_list[len(text_list) - 1] = text_list[len(text_list) - 1].ljust(width)
-    #text_list.append(" ".ljust(width))
+    # text_list.append(" ".ljust(width))
+
+    num_rows = len(text_list)
 
     start_idx = 0
-    end_idx = start_idx + max_height - 1 - 2
+    end_idx = start_idx + height - 1 - 2
 
-    if end_idx > len(text_list):
-        end_idx = len(text_list) - 1
+    if end_idx > num_rows:
+        end_idx = num_rows - 1
 
     # Drawing the browser
-    w: curses.window = init_win(max_height + 2, width + 4, 3, 3, title,
+    w: curses.window = init_win(height + 2, width + 4, 3, 3, title,
                                 _PAIR_WINDOW_BG_LOWER, 0)
     w.attron(curses.A_REVERSE)
     w.move(1, 0 + width + 3)
     w.addch(curses.ACS_UARROW)
-    w.move(max_height - 2, 0 + width + 3)
+    w.move(height - 2, 0 + width + 3)
     w.addch(curses.ACS_DARROW)
 
     w.attron(curses.A_NORMAL)
 
     # Draw the right bar
-    for i in range(2, max_height - 2):
+    for i in range(2, height - 2):
         w.move(i, 0 + width + 3)
-        w.addch(curses.ACS_CKBOARD)
+        w.addch(curses.ACS_DIAMOND)
 
+    # Draw the box on the right bar
+    max_length = height - 4
+    scale = int(max_length / num_rows * (height - 2)) - 1
 
-    w.addstr(max_height + 1, 2, "<ESC> Exit /// Up/Down to browse".center(width),
+    if num_rows > max_length:
+        __text_browser_refresh_bar(w, start_idx, height, scale, width)
+
+    w.addstr(height + 1, 2, "<ESC> Exit /// Up/Down to browse".center(width),
              curses.color_pair(_PAIR_WINDOW_HELPER))
 
     # Populating
@@ -851,6 +884,10 @@ def text_browser(s: curses.window, title: string, text: string):
                 end_idx += 1
 
         __text_browser_refresh(w, start_idx, end_idx, text_list)
+
+        if num_rows > max_length:
+            __text_browser_refresh_bar(w, start_idx, height, scale, width)
+
         pressed = s.getch()
 
     # Closing the browser
