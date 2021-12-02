@@ -50,7 +50,7 @@ def myapp(scr: curses.window):
                 file.close()
         elif m == 2 and mm == 2:
             w = cur_tools.init_win(15, 50, 5, 5, "Form Demo")
-            data = cur_tools.input_text_field(s, w, 3, 3, "Nombre", 20, "Text input demo.")
+            data = cur_tools.simple_input_text_field(s, w, 3, 3, "Nombre", 20, "Text input demo.")
             cur_tools.info_win(w, data)
             cur_tools.end_win(w)
 

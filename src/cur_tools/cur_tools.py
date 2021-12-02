@@ -227,7 +227,7 @@ def end_win(w: curses.window):
     del w
 
 
-def __curses_menu_hotkey_option(choices: list) -> list:
+def __menu_hotkey_option(choices: list) -> list:
     """INTERNAL - Given a list of options, returns a list of the hotkeys for every option. 
 
     Args:
@@ -339,7 +339,7 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
             max_length = len(choice[0])
 
     # Discovering the hotkeys
-    hotkey_list = __curses_menu_hotkey_option(choices)
+    hotkey_list = __menu_hotkey_option(choices)
 
     # Drawing the window
     window_menu: curses.window = init_win(len(choices) + 3, max_length + 4, wx, wy)
@@ -478,7 +478,7 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
 
     # Drawing the bar
     # status_bar(stdscr, " MenuBar DEMO | Make your choice =)")
-    hotkey_list = __curses_menu_hotkey_option(menubar_options)
+    hotkey_list = __menu_hotkey_option(menubar_options)
     idx = 0
     for opc in menubar_options:
         stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(_PAIR_WINDOW_BG_LOWER))
@@ -558,9 +558,9 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
     return idx + 1, submenu_choice
 
 
-def __field_input_type(w: curses.window, input_type: str, field_x: int,
-                       field_y: int, cursor_offset: int,
-                       length: int, key: curses.ascii, value: str) -> [int, str]:
+def __simple_field_input_type(w: curses.window, input_type: str, field_x: int,
+                              field_y: int, cursor_offset: int,
+                              length: int, key: curses.ascii, value: str) -> [int, str]:
     """INTERNAL - Logic behind the input field.
 
     Args:
@@ -595,8 +595,8 @@ def __field_input_type(w: curses.window, input_type: str, field_x: int,
     return cursor_offset, value
 
 
-def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: string,
-                     length: int, help="", type: int = 0) -> string:
+def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: string,
+                            length: int, help="", type: int = 0) -> string:
     """Creates a text field input.
 
     Args:
@@ -647,9 +647,9 @@ def input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: 
             bool_expr_type = "curses.ascii.isalpha(key)"
 
         w.move(field_x, field_y + cursor_offset)
-        cursor_offset, value = __field_input_type(w, bool_expr_type,
-                                                  field_x, field_y,
-                                                  cursor_offset, length, key, value)
+        cursor_offset, value = __simple_field_input_type(w, bool_expr_type,
+                                                         field_x, field_y,
+                                                         cursor_offset, length, key, value)
         w.refresh()
         key = w.getch()
 
@@ -716,9 +716,17 @@ def __items_len(thelist):
 
 # https://code.activestate.com/recipes/414870-align-text-string-using-spaces-between-words-to-fi/
 def align_string(s: string, width: int, last_paragraph_line: int = 0):
-    '''
-    align string to specified width
-    '''
+    """Align string to specified width.
+
+    Args:
+        s (str): string
+        width (int): width
+        last_paragraph_line (int): To indicate if it's the last line.
+
+    Returns:
+        Justified line
+    """
+
     # detect and save leading whitespace
     lead_re = re.compile(r'(^\s+)(.*)$')
     m = lead_re.match(s)
@@ -748,10 +756,18 @@ def align_string(s: string, width: int, last_paragraph_line: int = 0):
 
 
 def align_paragraph(paragraph, width, debug=0):
-    '''
-    align paragraph to specified width,
-    returns list of paragraph lines
-    '''
+    """Align paragraph to specified width.
+
+    Args:
+        paragraph (list): list of lines
+        width (int): width
+        debug (bool):
+
+    Returns:
+        List of paragraph lines
+    """
+
+
     lines = list()
     if type(paragraph) == type(lines):
         lines.extend(paragraph)

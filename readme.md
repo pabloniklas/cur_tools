@@ -16,25 +16,44 @@ The idea behind this library is to provide DOS like interface using curses.
 
 ## Functions
 
-### curses_info_win()
+### info_win()
 
 A simple information window.
 
 #### Usage
 
 ```python
-curses_info_win(screen, txt)
+info_win(screen, txt)
 ```
 
-*  screen: curses's screen object
-*  txt: text to be displayed.
+*  screen: Curses's screen object
+*  txt: Text to be displayed.
 
 #### Screenshot
 
 ![Windows](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/windows.png "window")
 
+### text_browser()
 
-### curses_horizontal_menu()
+Window to browse a text.
+
+#### Usage
+
+```python
+cur_tools.text_browser(screen, title, txt)
+```
+
+
+* screen: Curses's screen object
+* title: Window's title.
+* txt: Text to be displayed.
+
+#### Screnshots
+
+![Demo](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/text_browser.gif "demo")
+
+
+### menu_bar()
 
 It creates a horizontal menu bar.
 
@@ -59,7 +78,7 @@ ops = {
     ]
 }
 
-user_choice = pyCurses.menu_bar(s, myops)
+user_choice = cur_tools.menu_bar(s, myops)
 ```
 
 #### Examples
@@ -108,11 +127,11 @@ def myapp(scr: curses.window):
                 cur_tools.error_win(s, f"File '{file}' not found")
             else:
                 line = file.read().replace("\n", " ")
-                cur_tools.text_browser(s,"Browsing demo", line)
+                cur_tools.text_browser(s, "Browsing demo", line)
                 file.close()
         elif m == 2 and mm == 2:
             w = cur_tools.init_win(15, 50, 5, 5, "Form Demo")
-            data = cur_tools.input_text_field(s, w, 3, 3, "Nombre", 20, "Text input demo.")
+            data = cur_tools.simple_input_text_field(s, w, 3, 3, "Nombre", 20, "Text input demo.")
             cur_tools.info_win(w, data)
             cur_tools.end_win(w)
 
@@ -120,6 +139,7 @@ def myapp(scr: curses.window):
             cur_tools.info_win(s, ":: Men at work ::")
 
         m, mm = cur_tools.menu_bar(s, myops)
+
 
 # Python's entry point
 if __name__ == '__main__':
