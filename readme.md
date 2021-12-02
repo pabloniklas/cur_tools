@@ -78,8 +78,11 @@ ops = {
     ]
 }
 
-user_choice = cur_tools.menu_bar(s, myops)
+user_choice = cur_tools.menu_bar(screen, myops)
 ```
+
+* screen: Curses's screen object
+* myops: Data Structure for the options.
 
 #### Examples
 
