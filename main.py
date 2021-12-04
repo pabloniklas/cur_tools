@@ -22,8 +22,8 @@ def myapp(scr: curses.window):
         ],
         "Demos": [
             ["Browse", "Text browsing demo."],
-            ["Forms", "Forms demo."],
-            ["Demo 3", "Demo 3"]
+            ["Input", "Input demo."],
+            ["Forms", "Forms demo"]
         ],
         "Help": [
             ["About", "About this app."]
@@ -49,11 +49,11 @@ def myapp(scr: curses.window):
                 cur_tools.text_browser(s,"Browsing demo", line)
                 file.close()
         elif m == 2 and mm == 2:
-            w = cur_tools.init_win(15, 50, 5, 5, "Form Demo")
-            data = cur_tools.simple_input_text_field(s, w, 3, 3, "Nombre", 20, "Text input demo.")
-            cur_tools.info_win(w, data)
-            cur_tools.end_win(w)
-
+            data = cur_tools.input_box(s, "Name", 40, "Enter your name",
+                                       cur_tools.INPUT_TYPE_ALPHANUMERIC)
+            cur_tools.info_win(s, data)
+        elif m == 3 and mm == 1:
+            cur_tools.info_win(s,"Demo for cur tools. By Pablo Niklas")
         else:
             cur_tools.info_win(s, ":: Men at work ::")
 

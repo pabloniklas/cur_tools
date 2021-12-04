@@ -13,7 +13,7 @@ from curses import ascii
 
 # from var_dump import var_dump
 
-_STATUSBAR_PREFIX = " StatusBar | "
+STATUSBAR_PREFIX = " StatusBar | "
 
 # Color pair constants. Curses doesn't have them =(
 _pair_pointer = 1
@@ -47,6 +47,11 @@ _PAIR_ITEM_UNSELECTED = _pair_pointer
 
 _pair_pointer += 1
 _PAIR_ERROR_WINDOW = _pair_pointer
+
+# Input types
+INPUT_TYPE_ALPHANUMERIC = 0
+INPUT_TYPE_NUMERIC = 1
+INPUT_TYPE_ALPHABETIC = 2
 
 def curses_init(scr: curses.window) -> curses.window:
     """Initialize curses.
@@ -269,7 +274,7 @@ def status_bar(stdscr: curses.window, intxt: str):
     """
     height, width = stdscr.getmaxyx()
 
-    txt = _STATUSBAR_PREFIX
+    txt = STATUSBAR_PREFIX
 
     # Case dictionary
     switcher = {
@@ -595,6 +600,41 @@ def __simple_field_input_type(w: curses.window, input_type: str, field_x: int,
     return cursor_offset, value
 
 
+def input_box(s: curses.window, label: string,
+              length: int, help="", type: int = 0) -> string:
+    """Provides a simple input box
+
+    Args:
+        s (curses.windows): A curses window object.
+        label (string): Field label.
+        length (int): Field length.
+        help (string): Field help.
+        type (int): Field type:
+            INPUT_TYPE_ALPHANUMERIC
+            INPUT_TYPE_NUMERIC
+            INPUT_TYPE_ALPHABETIC
+
+    Returns:
+        value (string)
+    """
+
+    w = length + len(label) + 10
+
+    mh, mw = s.getmaxyx()
+
+    h = 7
+    wx = int((mh - h) / 2)
+    wy = int((mw - w) / 2)
+
+    win_input: curses.window = init_win(h, w, wx, wy, "Input Box")
+
+    value = simple_input_text_field(s, win_input, 3, 3, label, length, help, type)
+
+    end_win(win_input)
+
+    return value
+
+
 def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: string,
                             length: int, help="", type: int = 0) -> string:
     """Creates a text field input.
@@ -604,13 +644,13 @@ def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, 
         w (curses.window): Curses window object.
         x (int): row.
         y (int): col.
-        label (string): text
-        length (int): max length of the text field
+        label (string): Field label.
+        length (int): Length of the input field.
         help (string): Help text.
-        type (int): Type of validation:
-                0 => Alphanumeric only.
-                1 => Numeric only.
-                2 => Alphabetic only.
+        type (int): Field type.
+            INPUT_TYPE_ALPHANUMERIC
+            INPUT_TYPE_NUMERIC
+            INPUT_TYPE_ALPHABETIC
 
     Returns:
         String: The value of the input.
@@ -652,6 +692,8 @@ def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, 
                                                          cursor_offset, length, key, value)
         w.refresh()
         key = w.getch()
+
+        # TODO: Insert
 
     # Cancel Input when ESC is pressed
     if key == curses.ascii.ESC:
