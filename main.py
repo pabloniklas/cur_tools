@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import curses
-from src.cur_tools import cur_tools
 import sys
+
+from src.cur_tools import cur_tools
 
 
 # import lorem
@@ -22,7 +23,8 @@ def myapp(scr: curses.window):
         ],
         "Demos": [
             ["Browse", "Text browsing demo."],
-            ["Input", "Input demo."],
+            ["Normal Input", "Clear Input demo."],
+            ["Password Input", "Hidden Input demo."],
             ["Forms", "Forms demo"]
         ],
         "Help": [
@@ -46,14 +48,18 @@ def myapp(scr: curses.window):
                 cur_tools.error_win(s, f"File '{file}' not found")
             else:
                 line = file.read().replace("\n", " ")
-                cur_tools.text_browser(s,"Browsing demo", line)
+                cur_tools.text_browser(s, "Browsing demo", line)
                 file.close()
         elif m == 2 and mm == 2:
             data = cur_tools.input_box(s, "Name", 40, "Enter your name",
                                        cur_tools.INPUT_TYPE_ALPHANUMERIC)
             cur_tools.info_win(s, data)
+        elif m == 2 and mm == 3:
+            data = cur_tools.input_box(s, "Password", 40, "Type your most important password =)",
+                                       cur_tools.INPUT_TYPE_ALPHANUMERIC, True)
+            cur_tools.info_win(s, data)
         elif m == 3 and mm == 1:
-            cur_tools.info_win(s,"Demo for cur tools. By Pablo Niklas")
+            cur_tools.info_win(s, "Demo for cur tools. By Pablo Niklas")
         else:
             cur_tools.info_win(s, ":: Men at work ::")
 

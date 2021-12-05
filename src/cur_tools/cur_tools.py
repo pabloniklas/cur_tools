@@ -53,6 +53,7 @@ INPUT_TYPE_ALPHANUMERIC = 0
 INPUT_TYPE_NUMERIC = 1
 INPUT_TYPE_ALPHABETIC = 2
 
+
 def curses_init(scr: curses.window) -> curses.window:
     """Initialize curses.
 
@@ -123,7 +124,7 @@ def __popup(s: curses.window, color: curses, title: string, txt: string):
     h = 7
     wx = int((mh - h) / 2)
     wy = int((mw - w) / 2)
-    wininfo: curses.window = init_win(h, w, wx, wy, title, color)
+    wininfo = init_win(h, w, wx, wy, title, color)
     wininfo.addstr(3, 3, txt)
     wininfo.getch()
     end_win(wininfo)
@@ -233,7 +234,7 @@ def end_win(w: curses.window):
 
 
 def __menu_hotkey_option(choices: list) -> list:
-    """INTERNAL - Given a list of options, returns a list of the hotkeys for every option. 
+    """INTERNAL - Given a list of options, returns a list of the hotkeys for every option.
 
     Args:
         choices (list): The list of choices.
@@ -443,7 +444,7 @@ def __search_in_list(my_list: list, key: string, idx: int) -> int:
     Args:
         my_list (list): The list.
         key (string): The string to be searched in the list.
-        idx (int): 
+        idx (int):
 
     Returns:
         int: [description]
@@ -565,7 +566,8 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
 
 def __simple_field_input_type(w: curses.window, input_type: str, field_x: int,
                               field_y: int, cursor_offset: int,
-                              length: int, key: curses.ascii, value: str) -> [int, str]:
+                              length: int, key: curses.ascii, value: str,
+                              hidden: bool = False) -> [int, str]:
     """INTERNAL - Logic behind the input field.
 
     Args:
@@ -576,7 +578,8 @@ def __simple_field_input_type(w: curses.window, input_type: str, field_x: int,
         cursor_offset: Cursor position inside the field.
         length (int): Field length.
         key (curses.ascii): The key pressed.
-        value: The data in the field.
+        value (string) : The data in the field.
+        hidden (bool): If True, print "*" instead of char.
 
     Returns:
         The tuple [cursor_offset, value]
@@ -584,7 +587,10 @@ def __simple_field_input_type(w: curses.window, input_type: str, field_x: int,
 
     w.move(field_x, field_y + cursor_offset)
     if eval(input_type) and cursor_offset < length:
-        w.addch(key)
+        if hidden:
+            w.addch(curses.ACS_BULLET)
+        else:
+            w.addch(key)
         value += chr(key)
         cursor_offset += 1
     elif key in [ord('\b'), 127,
@@ -601,7 +607,7 @@ def __simple_field_input_type(w: curses.window, input_type: str, field_x: int,
 
 
 def input_box(s: curses.window, label: string,
-              length: int, help="", type: int = 0) -> string:
+              length: int, help="", type: int = 0, hidden: bool = False) -> string:
     """Provides a simple input box
 
     Args:
@@ -613,6 +619,7 @@ def input_box(s: curses.window, label: string,
             INPUT_TYPE_ALPHANUMERIC
             INPUT_TYPE_NUMERIC
             INPUT_TYPE_ALPHABETIC
+        hidden (bool): True means to hide the chars
 
     Returns:
         value (string)
@@ -628,7 +635,7 @@ def input_box(s: curses.window, label: string,
 
     win_input: curses.window = init_win(h, w, wx, wy, "Input Box")
 
-    value = simple_input_text_field(s, win_input, 3, 3, label, length, help, type)
+    value = simple_input_text_field(s, win_input, 3, 3, label, length, help, type, hidden)
 
     end_win(win_input)
 
@@ -636,7 +643,7 @@ def input_box(s: curses.window, label: string,
 
 
 def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: string,
-                            length: int, help="", type: int = 0) -> string:
+                            length: int, help="", type: int = 0, hidden: bool = False) -> string:
     """Creates a text field input.
 
     Args:
@@ -680,7 +687,7 @@ def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, 
     while key != curses.ascii.NL and key != curses.ascii.ESC:
 
         if type == 0:
-            bool_expr_type = "curses.ascii.isalnum(key)"
+            bool_expr_type = "curses.ascii.isalnum(key) or curses.ascii.isblank(key)"
         elif type == 1:
             bool_expr_type = "curses.ascii.isdigit(key)"
         elif type == 2:
@@ -689,7 +696,8 @@ def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, 
         w.move(field_x, field_y + cursor_offset)
         cursor_offset, value = __simple_field_input_type(w, bool_expr_type,
                                                          field_x, field_y,
-                                                         cursor_offset, length, key, value)
+                                                         cursor_offset, length, key, value,
+                                                         hidden)
         w.refresh()
         key = w.getch()
 
@@ -808,7 +816,6 @@ def align_paragraph(paragraph, width, debug=0):
     Returns:
         List of paragraph lines
     """
-
 
     lines = list()
     if type(paragraph) == type(lines):
@@ -929,6 +936,7 @@ def text_browser(s: curses.window, title: string, text: string, width: int = 50,
     __text_browser_refresh(w, start_idx, end_idx, text_list)
 
     pressed = s.getch()
+    s.nodelay(True)
     while pressed != curses.ascii.ESC:
 
         if pressed == curses.KEY_DOWN:  # curses.KEY_DOWN: 66
