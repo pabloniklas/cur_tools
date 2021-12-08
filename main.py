@@ -23,8 +23,12 @@ def myapp(scr: curses.window):
         ],
         "Demos": [
             ["Browse", "Text browsing demo."],
-            ["Normal Input", "Clear Input demo."],
-            ["Password Input", "Hidden Input demo."],
+            ["Input", "Some input demo.",
+                [
+                    ["Normal", "Normal input demo"],
+                    ["Password", "Password input demo"]
+                ]
+            ],
             ["Forms", "Forms demo"]
         ],
         "Help": [
