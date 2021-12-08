@@ -397,15 +397,15 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
             pressed != curses.ascii.NL:
 
         # Jump to the option if it's hotkey is pressed.
-        # if chr(pressed).upper() in hotkeys:
-        #     highlight_option = __search_in_list(hotkey_list, chr(pressed), 0)
-        #
-        #     __menu_option_refresh(window_menu, highlight_option, max_length,
-        #                           choices[highlight_option],
-        #                           hotkey_list,
-        #                           _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
-        #
-        #     status_bar(stdscr, choices[highlight_option][1])
+        if chr(pressed).upper() in hotkeys:
+            highlight_option = __search_in_list(hotkey_list, chr(pressed), 0)
+
+            __menu_option_refresh(window_menu, highlight_option, max_length,
+                                  choices[highlight_option],
+                                  hotkey_list,
+                                  _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
+
+            status_bar(stdscr, choices[highlight_option][1])
 
         # curses_status_bar(stdscr, "STATUS BAR | pressed: {}".format(pressed))
 
