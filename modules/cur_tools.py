@@ -468,7 +468,7 @@ def vertical_menu(stdscr: curses.window, choices: List[str], wx: int, wy: int) -
             return second_choice
 
 
-def _search_in_list(my_list: List[str], key: string, idx: int = 0) -> int:
+def _search_in_list(my_list: List[str], key: str, idx: int = 0) -> int:
     """INTERNAL - Search a string in a list of arrays.
 
     Args:
