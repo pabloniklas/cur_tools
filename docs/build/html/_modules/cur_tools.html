@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cur_tools &mdash; cur_tools  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> cur_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../requirements.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">cur_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      <li>cur_tools</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cur_tools</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1">#</span>
+<span class="c1"># CurTools</span>
+<span class="c1">#</span>
+<span class="c1"># By Pablo Niklas &lt;pablo _dot_ niklas _at_ gmail _dot_ com&gt;</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">curses</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">from</span> <span class="nn">curses</span> <span class="kn">import</span> <span class="n">ascii</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="c1"># from var_dump import var_dump</span>
+
+<span class="n">STATUSBAR_PREFIX</span> <span class="o">=</span> <span class="s2">&quot; StatusBar | &quot;</span>
+
+<span class="c1"># Color pair constants. Curses doesn&#39;t have them =(</span>
+<span class="n">_pair_pointer</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">_PAIR_SCREEN_BG</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_WINDOW_BG_LOWER</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_WINDOW_BG_UPPER</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_WINDOW_TITLE</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_INPUT_FIELD</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_WINDOW_SHADOW</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_WINDOW_HELPER</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_ITEM_SELECTED</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_HOTKEY_SELECTED</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_HOTKEY_UNSELECTED</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_ITEM_UNSELECTED</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="n">_pair_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">_PAIR_ERROR_WINDOW</span> <span class="o">=</span> <span class="n">_pair_pointer</span>
+
+<span class="c1"># Input types</span>
+<span class="n">INPUT_TYPE_ALPHANUMERIC</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">INPUT_TYPE_NUMERIC</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">INPUT_TYPE_ALPHABETIC</span> <span class="o">=</span> <span class="mi">2</span>
+
+
+<div class="viewcode-block" id="curses_init"><a class="viewcode-back" href="../index.html#cur_tools.curses_init">[docs]</a><span class="k">def</span> <span class="nf">curses_init</span><span class="p">(</span><span class="n">scr</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Initialize curses.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scr (curses): Curses screen object.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        curses: Curses screen object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">initscr</span><span class="p">()</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">cbreak</span><span class="p">()</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">noecho</span><span class="p">()</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">curs_set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># make cursor invisible</span>
+
+    <span class="n">scr</span><span class="o">.</span><span class="n">keypad</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Defining color pairs</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">start_color</span><span class="p">()</span>
+
+    <span class="c1"># Screen</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_SCREEN_BG</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_YELLOW</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLUE</span><span class="p">)</span>
+
+    <span class="c1"># Windows BG</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLACK</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">)</span>
+    <span class="c1"># curses.init_pair(_PAIR_WINDOW_BG_UPPER, curses.COLOR_WHITE, curses.COLOR_WHITE)</span>
+
+    <span class="c1"># Window shadow</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_SHADOW</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLACK</span><span class="p">)</span>
+
+    <span class="c1"># Window title</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_TITLE</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_RED</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">)</span>
+
+    <span class="c1"># Input type field</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_INPUT_FIELD</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLUE</span><span class="p">)</span>
+
+    <span class="c1"># Menu Items</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_ITEM_SELECTED</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLACK</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_GREEN</span><span class="p">)</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_ITEM_UNSELECTED</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLACK</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">)</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_HOTKEY_SELECTED</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_RED</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_GREEN</span><span class="p">)</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_HOTKEY_UNSELECTED</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_RED</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">)</span>
+
+    <span class="c1"># Error Windows color</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_ERROR_WINDOW</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_WHITE</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_RED</span><span class="p">)</span>
+
+    <span class="n">curses</span><span class="o">.</span><span class="n">init_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_HELPER</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_BLACK</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">COLOR_GREEN</span><span class="p">)</span>
+
+    <span class="n">scr</span><span class="o">.</span><span class="n">bkgd</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_SCREEN_BG</span><span class="p">))</span>
+    <span class="n">scr</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">scr</span><span class="o">.</span><span class="n">bkgdset</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">scr</span><span class="o">.</span><span class="n">bkgd</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_SCREEN_BG</span><span class="p">))</span>
+    <span class="n">scr</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">scr</span></div>
+
+
+<div class="viewcode-block" id="curses_end"><a class="viewcode-back" href="../index.html#cur_tools.curses_end">[docs]</a><span class="k">def</span> <span class="nf">curses_end</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Ends curses environment&quot;&quot;&quot;</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">endwin</span><span class="p">()</span></div>
+
+
+<span class="k">def</span> <span class="nf">_popup</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="n">curses</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="n">string</span><span class="p">):</span>
+    <span class="n">mh</span><span class="p">,</span> <span class="n">mw</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span> <span class="o">+</span> <span class="mi">6</span>
+
+    <span class="k">if</span> <span class="n">w</span> <span class="o">&lt;</span> <span class="mi">30</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="mi">30</span>
+
+    <span class="n">h</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">wx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">mh</span> <span class="o">-</span> <span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">wy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">mw</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">wininfo</span> <span class="o">=</span> <span class="n">init_win</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">wy</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+    <span class="n">wininfo</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span>
+    <span class="n">wininfo</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+    <span class="n">end_win</span><span class="p">(</span><span class="n">wininfo</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="info_win"><a class="viewcode-back" href="../index.html#cur_tools.info_win">[docs]</a><span class="k">def</span> <span class="nf">info_win</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates an info window</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s (curses) : Curses scrren object.</span>
+<span class="sd">        txt (string) : Text to be displayed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="n">_PAIR_WINDOW_BG_LOWER</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Info Window&quot;</span>
+    <span class="n">_popup</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="error_win"><a class="viewcode-back" href="../index.html#cur_tools.error_win">[docs]</a><span class="k">def</span> <span class="nf">error_win</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates an error window</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s (curses) : Curses scrren object.</span>
+<span class="sd">        txt (string) : Text to be displayed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="n">_PAIR_ERROR_WINDOW</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Error Window&quot;</span>
+    <span class="n">_popup</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="init_win"><a class="viewcode-back" href="../index.html#cur_tools.init_win">[docs]</a><span class="k">def</span> <span class="nf">init_win</span><span class="p">(</span><span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">wx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">wy</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+             <span class="n">bgcolor</span><span class="p">:</span> <span class="n">curses</span> <span class="o">=</span> <span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">,</span>
+             <span class="n">border_type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Creates a windows dialog.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        height (int): Window height.</span>
+<span class="sd">        width (int): Windows width.</span>
+<span class="sd">        wx (int): x coor.</span>
+<span class="sd">        wy (int): y coor.</span>
+<span class="sd">        title (string): Title (could be empty).</span>
+<span class="sd">        bgcolor (Curses.color): Background color.</span>
+<span class="sd">        border_type (int): 0 for simple border, 1 for double border. Other values are ignored.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        curses: Curses screen object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">w</span> <span class="o">=</span> <span class="n">curses</span><span class="o">.</span><span class="n">newwin</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">wy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">border_type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">box</span><span class="p">()</span>
+        <span class="c1"># for x in range(0, width):</span>
+        <span class="c1">#     w.move(0, x)</span>
+        <span class="c1">#     w.addch(curses.ACS_HLINE)</span>
+        <span class="c1">#</span>
+        <span class="c1"># w.addstr(0, 5, &quot;*&quot;,</span>
+        <span class="c1">#          curses.color_pair(_PAIR_WINDOW_BG_UPPER) | curses.A_BOLD | curses.A_REVERSE)</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ls - left side,</span>
+<span class="sd">        rs - right side,</span>
+<span class="sd">        ts - top side,</span>
+<span class="sd">        bs - bottom side,</span>
+<span class="sd">        tl - top left-hand corner,</span>
+<span class="sd">        tr - top right-hand corner,</span>
+<span class="sd">        bl - bottom left-hand corner, and</span>
+<span class="sd">        br - bottom right-hand corner. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># w.border(chr(186), chr(186), chr(186), chr(186), chr(201), chr(187), chr(200), chr(188))</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">bkgd</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">bgcolor</span><span class="p">))</span>
+
+    <span class="c1"># Shadow</span>
+    <span class="c1"># https://stackoverflow.com/questions/17096352/ncurses-shadow-of-a-window</span>
+    <span class="c1"># w.attron(_PAIR_WINDOW_SHADOW)</span>
+    <span class="c1">#</span>
+    <span class="c1"># for i in range(wy + 2, wy + width + 1):</span>
+    <span class="c1">#     w.move((wx + height), i)</span>
+    <span class="c1">#     w.addch(&#39; &#39;)</span>
+    <span class="c1">#</span>
+    <span class="c1"># for i in range(wx + 1, wx + height + 1):</span>
+    <span class="c1">#     w.move(i, (wy + width))</span>
+    <span class="c1">#     w.addch(&#39; &#39;)</span>
+    <span class="c1">#     w.move(i, (wy + width + 1))</span>
+    <span class="c1">#     w.addch(&#39; &#39;)</span>
+    <span class="c1">#</span>
+    <span class="c1"># w.attroff(_PAIR_WINDOW_SHADOW)</span>
+
+    <span class="k">if</span> <span class="n">title</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">width</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">title</span><span class="p">)</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;[ </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1"> ]&#39;</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">A_REVERSE</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">w</span></div>
+
+
+<div class="viewcode-block" id="end_win"><a class="viewcode-back" href="../index.html#cur_tools.end_win">[docs]</a><span class="k">def</span> <span class="nf">end_win</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Closes a curses window.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        w (curses): curses window object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">bkgd</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_SCREEN_BG</span><span class="p">))</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">erase</span><span class="p">()</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+    <span class="k">del</span> <span class="n">w</span></div>
+
+
+<div class="viewcode-block" id="_menu_hotkey_option"><a class="viewcode-back" href="../index.html#cur_tools._menu_hotkey_option">[docs]</a><span class="k">def</span> <span class="nf">_menu_hotkey_option</span><span class="p">(</span><span class="n">choices</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;INTERNAL - Given a list of options, returns a list of the hotkeys for every option.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        choices (list): The list of choices.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: The list of hotkeys for every option.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hotkey_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Walking the choices list.</span>
+    <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+
+        <span class="c1"># Walking the string</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">opt</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+
+            <span class="c1"># Empty list =&gt; I&#39;ve just add.</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hotkey_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">hotkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">opt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">opt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">x</span><span class="p">)])</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Stackoverflow to the rescue.</span>
+                <span class="c1"># https://stackoverflow.com/questions/13728023/check-if-a-sublist-contains-an-item</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hotkey_list</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># Add if not exists.</span>
+                    <span class="n">hotkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">opt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">opt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">x</span><span class="p">)])</span>
+                    <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">hotkey_list</span></div>
+
+
+<div class="viewcode-block" id="status_bar"><a class="viewcode-back" href="../index.html#cur_tools.status_bar">[docs]</a><span class="k">def</span> <span class="nf">status_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">intxt</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a status bar for informational purposes.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        stdscr (curses): Curses screen object.</span>
+<span class="sd">        intxt (str): Text to be displayed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">stdscr</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
+
+    <span class="n">txt</span> <span class="o">=</span> <span class="n">STATUSBAR_PREFIX</span>
+
+    <span class="c1"># Case dictionary</span>
+    <span class="n">switcher</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">13</span><span class="p">:</span> <span class="s2">&quot;&gt;ENTER&lt;&quot;</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">intxt</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">printable</span><span class="p">:</span>
+            <span class="n">txt</span> <span class="o">+=</span> <span class="n">c</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">asc</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">txt</span> <span class="o">+=</span> <span class="n">switcher</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">asc</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ASCII not found ==&gt; </span><span class="si">{</span><span class="n">asc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">txt</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span>
+
+    <span class="n">stdscr</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">txt</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">))</span>
+    <span class="n">stdscr</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span>
+                  <span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">txt</span><span class="p">)),</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">))</span>
+    <span class="n">stdscr</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="_menu_option_refresh"><a class="viewcode-back" href="../index.html#cur_tools._menu_option_refresh">[docs]</a><span class="k">def</span> <span class="nf">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">choice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">hotkey_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                         <span class="n">word_color</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hotkey_color</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;INTERNAL - Refresh the menu option</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        window_menu (curses.window): Curses window object.</span>
+<span class="sd">        row (int): Row number.</span>
+<span class="sd">        max_length (int): Options max length</span>
+<span class="sd">        choice [str]: Menu option to be written.</span>
+<span class="sd">        hotkey_list [str]: Hotkey inside the option.</span>
+<span class="sd">        word_color (int): Color combination of the option.</span>
+<span class="sd">        hotkey_color (int): Color combination of the hotkey.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">window_menu</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                       <span class="mi">1</span><span class="p">,</span>
+                       <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">choice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                       <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">word_color</span><span class="p">))</span>
+
+    <span class="n">window_menu</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                       <span class="n">hotkey_list</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="n">choice</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">hotkey_list</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="mi">2</span><span class="p">]:</span><span class="n">hotkey_list</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span>
+                       <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">hotkey_color</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="vertical_menu"><a class="viewcode-back" href="../index.html#cur_tools.vertical_menu">[docs]</a><span class="k">def</span> <span class="nf">vertical_menu</span><span class="p">(</span><span class="n">stdscr</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">choices</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">wx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">wy</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Creates a vertical menu of options, allowing the user to choose between them.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        stdscr (curses): Curses screen object.</span>
+<span class="sd">        choices (list): List of choices.</span>
+<span class="sd">        wx (int): x coor.</span>
+<span class="sd">        wy (int): y coor.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: The index of the choice that has been choosen.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Finding the max length between the menu options.</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">choice</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">max_length</span><span class="p">:</span>
+            <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">choice</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">max_length</span> <span class="o">+=</span> <span class="mi">2</span>
+
+    <span class="c1"># Discovering the hotkeys</span>
+    <span class="n">hotkey_list</span> <span class="o">=</span> <span class="n">_menu_hotkey_option</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span>
+
+    <span class="c1"># Creating a new list to keep the code simple</span>
+    <span class="n">hotkeys</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hotkey_list</span><span class="p">:</span>
+        <span class="n">hotkeys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># Drawing the window</span>
+    <span class="n">window_menu</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">init_win</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">wy</span><span class="p">)</span>
+
+    <span class="c1"># Printing the choices of the submenu</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+
+        <span class="n">parent_choice</span> <span class="o">=</span> <span class="n">choice</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">choice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># Submenu</span>
+            <span class="n">parent_choice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">choice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">max_length</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span>
+
+        <span class="c1"># First option selected</span>
+        <span class="k">if</span> <span class="n">row</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span> <span class="n">parent_choice</span><span class="p">,</span> <span class="n">hotkey_list</span><span class="p">,</span>
+                                 <span class="n">_PAIR_ITEM_SELECTED</span><span class="p">,</span> <span class="n">_PAIR_HOTKEY_SELECTED</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span> <span class="n">parent_choice</span><span class="p">,</span> <span class="n">hotkey_list</span><span class="p">,</span>
+                                 <span class="n">_PAIR_ITEM_UNSELECTED</span><span class="p">,</span> <span class="n">_PAIR_HOTKEY_UNSELECTED</span><span class="p">)</span>
+
+        <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+    <span class="n">window_menu</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="c1"># Submenu main cycle.</span>
+    <span class="n">highlight_option</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">,</span> <span class="n">highlight_option</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">],</span>
+                         <span class="n">hotkey_list</span><span class="p">,</span>
+                         <span class="n">_PAIR_ITEM_SELECTED</span><span class="p">,</span> <span class="n">_PAIR_HOTKEY_SELECTED</span><span class="p">)</span>
+
+    <span class="n">status_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">pressed</span> <span class="o">=</span> <span class="n">window_menu</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">pressed</span> <span class="o">!=</span> <span class="mi">67</span> <span class="ow">and</span> \
+            <span class="n">pressed</span> <span class="o">!=</span> <span class="mi">68</span> <span class="ow">and</span> \
+            <span class="n">pressed</span> <span class="o">!=</span> <span class="n">curses</span><span class="o">.</span><span class="n">ascii</span><span class="o">.</span><span class="n">NL</span><span class="p">:</span>
+
+        <span class="c1"># Jump to the option if it&#39;s hotkey is pressed.</span>
+        <span class="k">if</span> <span class="nb">chr</span><span class="p">(</span><span class="n">pressed</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">hotkeys</span><span class="p">:</span>
+            <span class="n">old_highlight_option</span> <span class="o">=</span> <span class="n">highlight_option</span>
+
+            <span class="n">highlight_option</span> <span class="o">=</span> <span class="n">_search_in_list</span><span class="p">(</span><span class="n">hotkey_list</span><span class="p">,</span> <span class="nb">chr</span><span class="p">(</span><span class="n">pressed</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="n">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">,</span> <span class="n">old_highlight_option</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span>
+                                 <span class="n">choices</span><span class="p">[</span><span class="n">old_highlight_option</span><span class="p">],</span>
+                                 <span class="n">hotkey_list</span><span class="p">,</span>
+                                 <span class="n">_PAIR_ITEM_UNSELECTED</span><span class="p">,</span> <span class="n">_PAIR_HOTKEY_UNSELECTED</span><span class="p">)</span>
+
+            <span class="n">status_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="n">pressed</span> <span class="o">==</span> <span class="mi">66</span><span class="p">:</span>  <span class="c1"># curses.KEY_DOWN:</span>
+
+            <span class="n">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">,</span> <span class="n">highlight_option</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span>
+                                 <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">],</span>
+                                 <span class="n">hotkey_list</span><span class="p">,</span>
+                                 <span class="n">_PAIR_ITEM_UNSELECTED</span><span class="p">,</span> <span class="n">_PAIR_HOTKEY_UNSELECTED</span><span class="p">)</span>
+
+            <span class="n">status_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">highlight_option</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">highlight_option</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">highlight_option</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">elif</span> <span class="n">pressed</span> <span class="o">==</span> <span class="mi">65</span><span class="p">:</span>  <span class="c1"># curses.KEY_UP:</span>
+            <span class="n">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">,</span> <span class="n">highlight_option</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span>
+                                 <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">],</span>
+                                 <span class="n">hotkey_list</span><span class="p">,</span>
+                                 <span class="n">_PAIR_ITEM_UNSELECTED</span><span class="p">,</span> <span class="n">_PAIR_HOTKEY_UNSELECTED</span><span class="p">)</span>
+
+            <span class="n">status_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">highlight_option</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">highlight_option</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">highlight_option</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="c1"># Draw the new option</span>
+        <span class="n">_menu_option_refresh</span><span class="p">(</span><span class="n">window_menu</span><span class="p">,</span> <span class="n">highlight_option</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span>
+                             <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">],</span>
+                             <span class="n">hotkey_list</span><span class="p">,</span>
+                             <span class="n">_PAIR_ITEM_SELECTED</span><span class="p">,</span> <span class="n">_PAIR_HOTKEY_SELECTED</span><span class="p">)</span>
+
+        <span class="n">status_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">window_menu</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="n">pressed</span> <span class="o">=</span> <span class="n">window_menu</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">pressed</span> <span class="o">==</span> <span class="mi">67</span><span class="p">:</span>
+        <span class="n">end_win</span><span class="p">(</span><span class="n">window_menu</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">10</span>
+    <span class="k">elif</span> <span class="n">pressed</span> <span class="o">==</span> <span class="mi">68</span><span class="p">:</span>
+        <span class="n">end_win</span><span class="p">(</span><span class="n">window_menu</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">11</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">end_win</span><span class="p">(</span><span class="n">window_menu</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">highlight_option</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>   <span class="c1"># submenu</span>
+            <span class="n">second_choices</span> <span class="o">=</span> <span class="n">choices</span><span class="p">[</span><span class="n">highlight_option</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">second_choice</span> <span class="o">=</span> <span class="n">vertical_menu</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="n">second_choices</span><span class="p">,</span> <span class="n">wx</span> <span class="o">+</span> <span class="n">row</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                          <span class="n">wy</span> <span class="o">+</span> <span class="n">max_length</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">end_win</span><span class="p">(</span><span class="n">window_menu</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">second_choice</span></div>
+
+
+<div class="viewcode-block" id="_search_in_list"><a class="viewcode-back" href="../index.html#cur_tools._search_in_list">[docs]</a><span class="k">def</span> <span class="nf">_search_in_list</span><span class="p">(</span><span class="n">my_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;INTERNAL - Search a string in a list of arrays.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        my_list (list): The list.</span>
+<span class="sd">        key (string): The string to be searched in the list.</span>
+<span class="sd">        idx (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: location of the string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">my_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="n">item</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">x</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="menu_bar"><a class="viewcode-back" href="../index.html#cur_tools.menu_bar">[docs]</a><span class="k">def</span> <span class="nf">menu_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">options_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Generates the classic menu bar.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        stdscr (curses): Curses screen object.</span>
+<span class="sd">        options_dict (dict): The list of options and suboptions.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: index value of the choice of the menu bar,</span>
+<span class="sd">        int: index value of the choice of the submenu.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">menubar_options</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options_dict</span><span class="p">:</span>
+        <span class="n">menubar_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">stdscr</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
+
+    <span class="n">list_cols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">list_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="c1"># Drawing the bar</span>
+    <span class="c1"># status_bar(stdscr, &quot; MenuBar DEMO | Make your choice =)&quot;)</span>
+    <span class="n">hotkey_list</span> <span class="o">=</span> <span class="n">_menu_hotkey_option</span><span class="p">(</span><span class="n">menubar_options</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">opc</span> <span class="ow">in</span> <span class="n">menubar_options</span><span class="p">:</span>
+        <span class="n">stdscr</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">opc</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">))</span>
+        <span class="n">stdscr</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="n">col</span> <span class="o">+</span> <span class="n">hotkey_list</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">hotkey_list</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_TITLE</span><span class="p">))</span>
+
+        <span class="n">col</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">opc</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">list_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="n">stdscr</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="n">col</span><span class="p">),</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">))</span>
+    <span class="n">status_bar</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="s2">&quot;Make a choice.&quot;</span><span class="p">)</span>
+    <span class="n">stdscr</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="c1"># Creating a new list to keep the code simple</span>
+    <span class="n">hotkeys</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hotkey_list</span><span class="p">:</span>
+        <span class="n">hotkeys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">submenu_choice</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="c1"># Main cycle</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">stdscr</span><span class="o">.</span><span class="n">getkey</span><span class="p">()</span>
+    <span class="n">stdscr</span><span class="o">.</span><span class="n">nodelay</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">27</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">stdscr</span><span class="o">.</span><span class="n">getkey</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">hotkey_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">stdscr</span><span class="o">.</span><span class="n">nodelay</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_search_in_list</span><span class="p">(</span><span class="n">hotkey_list</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">hotkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">_idx</span> <span class="o">=</span> <span class="n">menubar_options</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="c1"># Calling the vertical menu</span>
+        <span class="n">submenu_options</span> <span class="o">=</span> <span class="n">options_dict</span><span class="p">[</span><span class="n">_idx</span><span class="p">]</span>
+        <span class="n">submenu_choice</span> <span class="o">=</span> <span class="n">vertical_menu</span><span class="p">(</span>
+            <span class="n">stdscr</span><span class="p">,</span> <span class="n">submenu_options</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">list_cols</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+        <span class="k">while</span> <span class="p">(</span><span class="n">submenu_choice</span> <span class="o">==</span> <span class="o">-</span><span class="mi">10</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="p">(</span><span class="n">submenu_choice</span> <span class="o">==</span> <span class="o">-</span><span class="mi">11</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="p">(</span><span class="n">submenu_choice</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+
+            <span class="c1"># Going to the right</span>
+            <span class="k">if</span> <span class="n">submenu_choice</span> <span class="o">==</span> <span class="o">-</span><span class="mi">10</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">menubar_options</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Going to the left</span>
+            <span class="k">elif</span> <span class="n">submenu_choice</span> <span class="o">==</span> <span class="o">-</span><span class="mi">11</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">idx</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="c1"># Enter</span>
+            <span class="k">elif</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">submenu_choice</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">submenu_options</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">submenu_choice</span>
+
+            <span class="c1"># Any other key</span>
+            <span class="k">elif</span> <span class="n">stdscr</span><span class="o">.</span><span class="n">getkey</span><span class="p">()</span> <span class="o">==</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">27</span><span class="p">):</span>
+                <span class="n">stdscr</span><span class="o">.</span><span class="n">nodelay</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">stdscr</span><span class="o">.</span><span class="n">getkey</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hotkey_list</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">idx</span> <span class="o">=</span> <span class="n">hotkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+            <span class="n">submenu_options</span> <span class="o">=</span> <span class="n">options_dict</span><span class="p">[</span><span class="n">menubar_options</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
+            <span class="n">submenu_choice</span> <span class="o">=</span> <span class="n">vertical_menu</span><span class="p">(</span>
+                <span class="n">stdscr</span><span class="p">,</span> <span class="n">submenu_options</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">list_cols</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">info_win</span><span class="p">(</span><span class="n">stdscr</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Char &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; not found in list </span><span class="si">{</span><span class="n">hotkey_list</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">submenu_choice</span></div>
+
+
+<div class="viewcode-block" id="_simple_field_input_type"><a class="viewcode-back" href="../index.html#cur_tools._simple_field_input_type">[docs]</a><span class="k">def</span> <span class="nf">_simple_field_input_type</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">input_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">field_x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                             <span class="n">field_y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cursor_offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                             <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">ascii</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;INTERNAL - Logic behind the input field.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        w (curses.window): A curses window object.</span>
+<span class="sd">        input_type (string): Boolean validation expression</span>
+<span class="sd">        field_x (int): x coordinate.</span>
+<span class="sd">        field_y (int): y coordinate.</span>
+<span class="sd">        cursor_offset: Cursor position inside the field.</span>
+<span class="sd">        length (int): Field length.</span>
+<span class="sd">        key (curses.ascii): The key pressed.</span>
+<span class="sd">        value (string) : The data in the field.</span>
+<span class="sd">        hidden (bool): If True, print &quot;*&quot; instead of char.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The tuple [cursor_offset, value]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">field_x</span><span class="p">,</span> <span class="n">field_y</span> <span class="o">+</span> <span class="n">cursor_offset</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">eval</span><span class="p">(</span><span class="n">input_type</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cursor_offset</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hidden</span><span class="p">:</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">ACS_BULLET</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">+=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">cursor_offset</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\b</span><span class="s1">&#39;</span><span class="p">),</span> <span class="mi">127</span><span class="p">,</span>
+                 <span class="n">curses</span><span class="o">.</span><span class="n">ascii</span><span class="o">.</span><span class="n">BS</span><span class="p">,</span>
+                 <span class="n">curses</span><span class="o">.</span><span class="n">KEY_BACKSPACE</span>
+                 <span class="p">]:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cursor_offset</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cursor_offset</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">field_x</span><span class="p">,</span> <span class="n">field_y</span> <span class="o">+</span> <span class="n">cursor_offset</span><span class="p">)</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cursor_offset</span><span class="p">,</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="input_box"><a class="viewcode-back" href="../index.html#cur_tools.input_box">[docs]</a><span class="k">def</span> <span class="nf">input_box</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span>
+              <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">string</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Provides a simple input box</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s (curses.windows): A curses window object.</span>
+<span class="sd">        label (string): Field label.</span>
+<span class="sd">        length (int): Field length.</span>
+<span class="sd">        help (string): Field help.</span>
+<span class="sd">        type (int): Field type:</span>
+<span class="sd">            INPUT_TYPE_ALPHANUMERIC</span>
+<span class="sd">            INPUT_TYPE_NUMERIC</span>
+<span class="sd">            INPUT_TYPE_ALPHABETIC</span>
+<span class="sd">        hidden (bool): True means to hide the chars</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        value (string)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">w</span> <span class="o">=</span> <span class="n">length</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">+</span> <span class="mi">10</span>
+
+    <span class="n">mh</span><span class="p">,</span> <span class="n">mw</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
+
+    <span class="n">h</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">wx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">mh</span> <span class="o">-</span> <span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">wy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">mw</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">win_input</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">init_win</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">wy</span><span class="p">,</span> <span class="s2">&quot;Input Box&quot;</span><span class="p">)</span>
+
+    <span class="n">value</span> <span class="o">=</span> <span class="n">simple_input_text_field</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">win_input</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">help</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+
+    <span class="n">end_win</span><span class="p">(</span><span class="n">win_input</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="simple_input_text_field"><a class="viewcode-back" href="../index.html#cur_tools.simple_input_text_field">[docs]</a><span class="k">def</span> <span class="nf">simple_input_text_field</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span>
+                            <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">string</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Creates a text field input.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s (curses.window): Curses screen object.</span>
+<span class="sd">        w (curses.window): Curses window object.</span>
+<span class="sd">        x (int): row.</span>
+<span class="sd">        y (int): col.</span>
+<span class="sd">        label (string): Field label.</span>
+<span class="sd">        length (int): Length of the input field.</span>
+<span class="sd">        help (string): Help text.</span>
+<span class="sd">        type (int): Field type.</span>
+<span class="sd">            INPUT_TYPE_ALPHANUMERIC</span>
+<span class="sd">            INPUT_TYPE_NUMERIC</span>
+<span class="sd">            INPUT_TYPE_ALPHABETIC</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        String: The value of the input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">status_bar</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">help</span><span class="p">)</span>
+
+    <span class="c1"># Label</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">))</span>
+
+    <span class="c1"># Draw the gap</span>
+    <span class="n">field_y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+    <span class="n">field_x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">field_x</span><span class="p">,</span> <span class="n">field_y</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_INPUT_FIELD</span><span class="p">))</span>
+
+    <span class="c1"># Main cycle.</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">curs_set</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># make cursor visible</span>
+    <span class="n">curses</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">nodelay</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+    <span class="n">cursor_offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">field_x</span><span class="p">,</span> <span class="n">field_y</span> <span class="o">+</span> <span class="n">cursor_offset</span><span class="p">)</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">attron</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_INPUT_FIELD</span><span class="p">))</span>
+
+    <span class="k">while</span> <span class="n">key</span> <span class="o">!=</span> <span class="n">curses</span><span class="o">.</span><span class="n">ascii</span><span class="o">.</span><span class="n">NL</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="n">curses</span><span class="o">.</span><span class="n">ascii</span><span class="o">.</span><span class="n">ESC</span><span class="p">:</span>
+
+        <span class="n">bool_expr_type</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">bool_expr_type</span> <span class="o">=</span> <span class="s2">&quot;curses.ascii.isalnum(key) or curses.ascii.isblank(key)&quot;</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">bool_expr_type</span> <span class="o">=</span> <span class="s2">&quot;curses.ascii.isdigit(key)&quot;</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">bool_expr_type</span> <span class="o">=</span> <span class="s2">&quot;curses.ascii.isalpha(key)&quot;</span>
+
+        <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">field_x</span><span class="p">,</span> <span class="n">field_y</span> <span class="o">+</span> <span class="n">cursor_offset</span><span class="p">)</span>
+        <span class="n">cursor_offset</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">_simple_field_input_type</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">bool_expr_type</span><span class="p">,</span>
+                                                        <span class="n">field_x</span><span class="p">,</span> <span class="n">field_y</span><span class="p">,</span>
+                                                        <span class="n">cursor_offset</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span>
+                                                        <span class="n">hidden</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+
+        <span class="c1"># TODO: Insert</span>
+
+    <span class="c1"># Cancel Input when ESC is pressed</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="n">curses</span><span class="o">.</span><span class="n">ascii</span><span class="o">.</span><span class="n">ESC</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">curses</span><span class="o">.</span><span class="n">curs_set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># make cursor invisible</span>
+    <span class="n">end_win</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="text_justification"><a class="viewcode-back" href="../index.html#cur_tools.text_justification">[docs]</a><span class="k">def</span> <span class="nf">text_justification</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Justifity a text inside the desired width.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (string): Text to be justified</span>
+<span class="sd">        width (int): Width of the justification.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list[str]: list of rows for the justied text.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">current_cursor</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ulist</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Split the text into a list</span>
+    <span class="k">while</span> <span class="n">current_cursor</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+
+        <span class="n">end_cursor</span> <span class="o">=</span> <span class="n">current_cursor</span> <span class="o">+</span> <span class="n">width</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">end_cursor</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">end_cursor</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">current_cursor</span><span class="p">:</span><span class="n">end_cursor</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Truncate only where a space is detected</span>
+        <span class="k">while</span> <span class="n">aux</span><span class="p">[</span><span class="n">end_cursor</span> <span class="o">-</span> <span class="n">current_cursor</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot; &quot;</span> \
+                <span class="ow">and</span> <span class="n">end_cursor</span> <span class="o">&gt;</span> <span class="n">current_cursor</span><span class="p">:</span>  <span class="c1"># last line space detected</span>
+            <span class="n">end_cursor</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">end_cursor</span> <span class="o">==</span> <span class="n">current_cursor</span><span class="p">:</span>  <span class="c1"># big word detected</span>
+            <span class="n">end_cursor</span> <span class="o">=</span> <span class="n">current_cursor</span> <span class="o">+</span> <span class="n">width</span>
+            <span class="k">if</span> <span class="n">end_cursor</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">end_cursor</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">current_cursor</span><span class="p">:</span><span class="n">end_cursor</span><span class="p">]</span> \
+            <span class="o">.</span><span class="n">strip</span><span class="p">()</span> \
+            <span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>  <span class="c1"># up to the last space within width</span>
+
+        <span class="n">ulist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span>  <span class="c1"># up to the last space within width</span>
+        <span class="n">current_cursor</span> <span class="o">=</span> <span class="n">end_cursor</span>
+
+    <span class="n">jlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">uitem</span> <span class="ow">in</span> <span class="n">ulist</span><span class="p">:</span>
+        <span class="n">jlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">align_string</span><span class="p">(</span><span class="n">uitem</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">jlist</span></div>
+
+
+<span class="k">def</span> <span class="nf">_items_len</span><span class="p">(</span><span class="n">thelist</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">thelist</span><span class="p">])</span>
+
+
+<span class="c1"># https://code.activestate.com/recipes/414870-align-text-string-using-spaces-between-words-to-fi/</span>
+<div class="viewcode-block" id="align_string"><a class="viewcode-back" href="../index.html#cur_tools.align_string">[docs]</a><span class="k">def</span> <span class="nf">align_string</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">last_paragraph_line</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Align string to specified width.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s (str): string</span>
+<span class="sd">        width (int): width</span>
+<span class="sd">        last_paragraph_line (int): To indicate if it&#39;s the last line.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Justified line</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># detect and save leading whitespace</span>
+    <span class="n">lead_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(^\s+)(.*)$&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">lead_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">width</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">width</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">items</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="c1"># add required space to each words, exclude last item</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">last_paragraph_line</span><span class="p">:</span>
+        <span class="c1"># number of spaces to add</span>
+        <span class="n">left_count</span> <span class="o">=</span> <span class="n">w</span> <span class="o">-</span> <span class="n">_items_len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">left_count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span>
+                <span class="n">left_count</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">left_count</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="align_paragraph"><a class="viewcode-back" href="../index.html#cur_tools.align_paragraph">[docs]</a><span class="k">def</span> <span class="nf">align_paragraph</span><span class="p">(</span><span class="n">paragraph</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Align paragraph to a specific width.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        paragraph (list): list of lines</span>
+<span class="sd">        width (int): width</span>
+<span class="sd">        debug (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of paragraph lines</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">paragraph</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">paragraph</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">paragraph</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">paragraph</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">paragraph</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">tuple</span><span class="p">()):</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">paragraph</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Unsopported paragraph type: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">paragraph</span><span class="p">))</span>
+
+    <span class="n">flatten_para</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="n">splitted</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">flatten_para</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;textwrap:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">splitted</span><span class="p">))</span>
+
+    <span class="n">wrapped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">splitted</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">splitted</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">splitted</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">last_paragraph_line</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">last_paragraph_line</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">aligned</span> <span class="o">=</span> <span class="n">align_string</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">last_paragraph_line</span><span class="p">)</span>
+        <span class="n">wrapped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aligned</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">wrapped</span></div>
+
+
+<span class="k">def</span> <span class="nf">_text_browser_refresh</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                          <span class="n">end_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span><span class="p">):</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">text_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">))</span>
+        <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="_text_browser_refresh_bar"><a class="viewcode-back" href="../index.html#cur_tools._text_browser_refresh_bar">[docs]</a><span class="k">def</span> <span class="nf">_text_browser_refresh_bar</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;INTERNAL - Browser of the refresh bar</span>
+
+<span class="sd">    w (curses.window): Curses window object</span>
+<span class="sd">    start_idx (int): Index stat</span>
+<span class="sd">    height (int): Height of the window</span>
+<span class="sd">    scale (int): Scale (length)</span>
+<span class="sd">    width (int): Width of the window</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">start_idx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">start_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">ACS_DIAMOND</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="n">start_idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">ACS_CKBOARD</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">+</span> <span class="n">start_idx</span> <span class="o">&lt;</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">scale</span> <span class="o">+</span> <span class="n">start_idx</span><span class="p">,</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">ACS_DIAMOND</span><span class="p">)</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="text_browser"><a class="viewcode-back" href="../index.html#cur_tools.text_browser">[docs]</a><span class="k">def</span> <span class="nf">text_browser</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Text Browsing</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s (Curses.window): Curses screen object.</span>
+<span class="sd">        title (string): Title of the window.</span>
+<span class="sd">        text (string): Text to be browsed.</span>
+<span class="sd">        width (int): width of the browser.</span>
+<span class="sd">        height (int): height of the browser.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">status_bar</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">&quot;Browsing text.&quot;</span><span class="p">)</span>
+
+    <span class="n">text_list</span> <span class="o">=</span> <span class="n">text_justification</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+    <span class="n">text_list</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">text_list</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+    <span class="c1"># text_list.append(&quot; &quot;.ljust(width))</span>
+
+    <span class="n">num_rows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span>
+
+    <span class="n">start_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">end_idx</span> <span class="o">=</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span>
+
+    <span class="k">if</span> <span class="n">end_idx</span> <span class="o">&gt;</span> <span class="n">num_rows</span><span class="p">:</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">num_rows</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="c1"># Drawing the browser</span>
+    <span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">init_win</span><span class="p">(</span><span class="n">height</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span>
+                                <span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">attron</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">A_REVERSE</span><span class="p">)</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">ACS_UARROW</span><span class="p">)</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">ACS_DARROW</span><span class="p">)</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">attron</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">A_NORMAL</span><span class="p">)</span>
+
+    <span class="c1"># Draw the right bar</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">addch</span><span class="p">(</span><span class="n">curses</span><span class="o">.</span><span class="n">ACS_DIAMOND</span><span class="p">)</span>
+
+    <span class="c1"># Draw the box on the right bar</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">4</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_length</span> <span class="o">/</span> <span class="n">num_rows</span> <span class="o">*</span> <span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="mi">2</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">num_rows</span> <span class="o">&gt;</span> <span class="n">max_length</span><span class="p">:</span>
+        <span class="n">_text_browser_refresh_bar</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">height</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;&lt;ESC&gt; Exit /// Up/Down to browse&quot;</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">width</span><span class="p">),</span>
+             <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_HELPER</span><span class="p">))</span>
+
+    <span class="c1"># Populating</span>
+    <span class="n">_text_browser_refresh</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span><span class="p">,</span> <span class="n">text_list</span><span class="p">)</span>
+
+    <span class="n">pressed</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">nodelay</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">pressed</span> <span class="o">!=</span> <span class="n">curses</span><span class="o">.</span><span class="n">ascii</span><span class="o">.</span><span class="n">ESC</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">pressed</span> <span class="o">==</span> <span class="n">curses</span><span class="o">.</span><span class="n">KEY_DOWN</span><span class="p">:</span>  <span class="c1"># curses.KEY_DOWN: 66</span>
+            <span class="k">if</span> <span class="n">start_idx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">start_idx</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">end_idx</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">pressed</span> <span class="o">==</span> <span class="n">curses</span><span class="o">.</span><span class="n">KEY_UP</span><span class="p">:</span>  <span class="c1"># curses.KEY_UP: 65</span>
+            <span class="k">if</span> <span class="n">end_idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">):</span>
+                <span class="n">start_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">end_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">_text_browser_refresh</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span><span class="p">,</span> <span class="n">text_list</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">num_rows</span> <span class="o">&gt;</span> <span class="n">max_length</span><span class="p">:</span>
+            <span class="n">_text_browser_refresh_bar</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+
+        <span class="n">pressed</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getch</span><span class="p">()</span>
+
+    <span class="c1"># Closing the browser</span>
+    <span class="n">end_win</span><span class="p">(</span><span class="n">w</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Pablo Niklas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cur-tools &mdash; cur_tools  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="About" href="about.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> cur_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">cur_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>cur-tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="cur-tools">
+<h1>cur-tools<a class="headerlink" href="#cur-tools" title="Permalink to this headline"></a></h1>
+<p>By Pablo Niklas</p>
+<img alt="https://img.shields.io/github/license/pabloniklas/CurTools" src="https://img.shields.io/github/license/pabloniklas/CurTools" />
+<img alt="https://img.shields.io/github/v/release/pabloniklas/CurTools" src="https://img.shields.io/github/v/release/pabloniklas/CurTools" />
+<img alt="https://img.shields.io/github/languages/top/pabloniklas/CurTools" src="https://img.shields.io/github/languages/top/pabloniklas/CurTools" />
+<img alt="https://img.shields.io/github/downloads/pabloniklas/cur_tools/total" src="https://img.shields.io/github/downloads/pabloniklas/cur_tools/total" />
+<img alt="Demo" src="https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/demo.gif" />
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="requirements.html#for-the-modules">For the modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="requirements.html#for-the-documentation">For the documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="functions.html#info-win">info_win()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html#text-browser">text_browser()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html#menu-bar">menu_bar()</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">modules</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-cur_tools">
+<span id="api-reference"></span><h1>API Reference<a class="headerlink" href="#module-cur_tools" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.curses_init">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">curses_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_curses.window</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_curses.window</span></span></span><a class="reference internal" href="_modules/cur_tools.html#curses_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.curses_init" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize curses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scr</strong> (<em>curses</em>) – Curses screen object.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Curses screen object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>curses</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.curses_end">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">curses_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#curses_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.curses_end" title="Permalink to this definition"></a></dt>
+<dd><p>Ends curses environment</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.info_win">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">info_win</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s:</span> <span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#info_win"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.info_win" title="Permalink to this definition"></a></dt>
+<dd><p>Creates an info window</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>curses</em>) – Curses scrren object.</p></li>
+<li><p><strong>txt</strong> (<em>string</em>) – Text to be displayed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.error_win">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">error_win</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s:</span> <span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#error_win"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.error_win" title="Permalink to this definition"></a></dt>
+<dd><p>Creates an error window</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>curses</em>) – Curses scrren object.</p></li>
+<li><p><strong>txt</strong> (<em>string</em>) – Text to be displayed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.init_win">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">init_win</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wx:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wy:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bgcolor:</span> <span class="pre">&lt;module</span> <span class="pre">'curses'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/curses/__init__.py'&gt;</span> <span class="pre">=</span> <span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">border_type:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_curses.window</span></span></span><a class="reference internal" href="_modules/cur_tools.html#init_win"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.init_win" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a windows dialog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>height</strong> (<em>int</em>) – Window height.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – Windows width.</p></li>
+<li><p><strong>wx</strong> (<em>int</em>) – x coor.</p></li>
+<li><p><strong>wy</strong> (<em>int</em>) – y coor.</p></li>
+<li><p><strong>title</strong> (<em>string</em>) – Title (could be empty).</p></li>
+<li><p><strong>bgcolor</strong> (<em>Curses.color</em>) – Background color.</p></li>
+<li><p><strong>border_type</strong> (<em>int</em>) – 0 for simple border, 1 for double border. Other values are ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Curses screen object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>curses</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.end_win">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">end_win</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_curses.window</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#end_win"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.end_win" title="Permalink to this definition"></a></dt>
+<dd><p>Closes a curses window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> (<em>curses</em>) – curses window object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools._menu_hotkey_option">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">_menu_hotkey_option</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cur_tools.html#_menu_hotkey_option"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools._menu_hotkey_option" title="Permalink to this definition"></a></dt>
+<dd><p>INTERNAL - Given a list of options, returns a list of the hotkeys for every option.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>choices</strong> (<em>list</em>) – The list of choices.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of hotkeys for every option.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.status_bar">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">status_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stdscr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#status_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.status_bar" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a status bar for informational purposes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stdscr</strong> (<em>curses</em>) – Curses screen object.</p></li>
+<li><p><strong>intxt</strong> (<em>str</em>) – Text to be displayed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools._menu_option_refresh">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">_menu_option_refresh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_menu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hotkey_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hotkey_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#_menu_option_refresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools._menu_option_refresh" title="Permalink to this definition"></a></dt>
+<dd><p>INTERNAL - Refresh the menu option</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_menu</strong> (<em>curses.window</em>) – Curses window object.</p></li>
+<li><p><strong>row</strong> (<em>int</em>) – Row number.</p></li>
+<li><p><strong>max_length</strong> (<em>int</em>) – Options max length</p></li>
+<li><p><strong>[</strong><strong>str</strong><strong>]</strong> (<em>hotkey_list</em>) – Menu option to be written.</p></li>
+<li><p><strong>[</strong><strong>str</strong><strong>]</strong> – Hotkey inside the option.</p></li>
+<li><p><strong>word_color</strong> (<em>int</em>) – Color combination of the option.</p></li>
+<li><p><strong>hotkey_color</strong> (<em>int</em>) – Color combination of the hotkey.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.vertical_menu">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">vertical_menu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stdscr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/cur_tools.html#vertical_menu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.vertical_menu" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a vertical menu of options, allowing the user to choose between them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stdscr</strong> (<em>curses</em>) – Curses screen object.</p></li>
+<li><p><strong>choices</strong> (<em>list</em>) – List of choices.</p></li>
+<li><p><strong>wx</strong> (<em>int</em>) – x coor.</p></li>
+<li><p><strong>wy</strong> (<em>int</em>) – y coor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The index of the choice that has been choosen.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools._search_in_list">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">_search_in_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_list:</span> <span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/cur_tools.html#_search_in_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools._search_in_list" title="Permalink to this definition"></a></dt>
+<dd><p>INTERNAL - Search a string in a list of arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>my_list</strong> (<em>list</em>) – The list.</p></li>
+<li><p><strong>key</strong> (<em>string</em>) – The string to be searched in the list.</p></li>
+<li><p><strong>idx</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>location of the string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.menu_bar">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">menu_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stdscr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/cur_tools.html#menu_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.menu_bar" title="Permalink to this definition"></a></dt>
+<dd><p>Generates the classic menu bar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stdscr</strong> (<em>curses</em>) – Curses screen object.</p></li>
+<li><p><strong>options_dict</strong> (<em>dict</em>) – The list of options and suboptions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>index value of the choice of the menu bar,
+int: index value of the choice of the submenu.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools._simple_field_input_type">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">_simple_field_input_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w:</span> <span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_type:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_x:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_y:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cursor_offset:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key:</span> <span class="pre">&lt;module</span> <span class="pre">'curses.ascii'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/curses/ascii.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/cur_tools.html#_simple_field_input_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools._simple_field_input_type" title="Permalink to this definition"></a></dt>
+<dd><p>INTERNAL - Logic behind the input field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>curses.window</em>) – A curses window object.</p></li>
+<li><p><strong>input_type</strong> (<em>string</em>) – Boolean validation expression</p></li>
+<li><p><strong>field_x</strong> (<em>int</em>) – x coordinate.</p></li>
+<li><p><strong>field_y</strong> (<em>int</em>) – y coordinate.</p></li>
+<li><p><strong>cursor_offset</strong> – Cursor position inside the field.</p></li>
+<li><p><strong>length</strong> (<em>int</em>) – Field length.</p></li>
+<li><p><strong>key</strong> (<em>curses.ascii</em>) – The key pressed.</p></li>
+<li><p><strong>value</strong> (<em>string</em>) – The data in the field.</p></li>
+<li><p><strong>hidden</strong> (<em>bool</em>) – If True, print “*” instead of char.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The tuple [cursor_offset, value]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.input_box">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">input_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s:</span> <span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></span><a class="reference internal" href="_modules/cur_tools.html#input_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.input_box" title="Permalink to this definition"></a></dt>
+<dd><p>Provides a simple input box</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>curses.windows</em>) – A curses window object.</p></li>
+<li><p><strong>label</strong> (<em>string</em>) – Field label.</p></li>
+<li><p><strong>length</strong> (<em>int</em>) – Field length.</p></li>
+<li><p><strong>help</strong> (<em>string</em>) – Field help.</p></li>
+<li><p><strong>type</strong> (<em>int</em>) – Field type:
+INPUT_TYPE_ALPHANUMERIC
+INPUT_TYPE_NUMERIC
+INPUT_TYPE_ALPHABETIC</p></li>
+<li><p><strong>hidden</strong> (<em>bool</em>) – True means to hide the chars</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value (string)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.simple_input_text_field">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">simple_input_text_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s:</span> <span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w:</span> <span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></span><a class="reference internal" href="_modules/cur_tools.html#simple_input_text_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.simple_input_text_field" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a text field input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>curses.window</em>) – Curses screen object.</p></li>
+<li><p><strong>w</strong> (<em>curses.window</em>) – Curses window object.</p></li>
+<li><p><strong>x</strong> (<em>int</em>) – row.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – col.</p></li>
+<li><p><strong>label</strong> (<em>string</em>) – Field label.</p></li>
+<li><p><strong>length</strong> (<em>int</em>) – Length of the input field.</p></li>
+<li><p><strong>help</strong> (<em>string</em>) – Help text.</p></li>
+<li><p><strong>type</strong> (<em>int</em>) – Field type.
+INPUT_TYPE_ALPHANUMERIC
+INPUT_TYPE_NUMERIC
+INPUT_TYPE_ALPHABETIC</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The value of the input.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>String</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.text_justification">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">text_justification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width:</span> <span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cur_tools.html#text_justification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.text_justification" title="Permalink to this definition"></a></dt>
+<dd><p>Justifity a text inside the desired width.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>string</em>) – Text to be justified</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – Width of the justification.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of rows for the justied text.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.align_string">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">align_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_paragraph_line:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/cur_tools.html#align_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.align_string" title="Permalink to this definition"></a></dt>
+<dd><p>Align string to specified width.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>str</em>) – string</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – width</p></li>
+<li><p><strong>last_paragraph_line</strong> (<em>int</em>) – To indicate if it’s the last line.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Justified line</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.align_paragraph">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">align_paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paragraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cur_tools.html#align_paragraph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.align_paragraph" title="Permalink to this definition"></a></dt>
+<dd><p>Align paragraph to a specific width.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>paragraph</strong> (<em>list</em>) – list of lines</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – width</p></li>
+<li><p><strong>debug</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of paragraph lines</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools._text_browser_refresh_bar">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">_text_browser_refresh_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#_text_browser_refresh_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools._text_browser_refresh_bar" title="Permalink to this definition"></a></dt>
+<dd><p>INTERNAL - Browser of the refresh bar</p>
+<p>w (curses.window): Curses window object
+start_idx (int): Index stat
+height (int): Height of the window
+scale (int): Scale (length)
+width (int): Width of the window</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cur_tools.text_browser">
+<span class="sig-prename descclassname"><span class="pre">cur_tools.</span></span><span class="sig-name descname"><span class="pre">text_browser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s:</span> <span class="pre">_curses.window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text:</span> <span class="pre">&lt;module</span> <span class="pre">'string'</span> <span class="pre">from</span> <span class="pre">'/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/string.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cur_tools.html#text_browser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cur_tools.text_browser" title="Permalink to this definition"></a></dt>
+<dd><p>Text Browsing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>Curses.window</em>) – Curses screen object.</p></li>
+<li><p><strong>title</strong> (<em>string</em>) – Title of the window.</p></li>
+<li><p><strong>text</strong> (<em>string</em>) – Text to be browsed.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – width of the browser.</p></li>
+<li><p><strong>height</strong> (<em>int</em>) – height of the browser.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="about.html" class="btn btn-neutral float-right" title="About" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Pablo Niklas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

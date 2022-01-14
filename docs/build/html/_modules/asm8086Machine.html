@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>asm8086Machine &mdash; PEBUG  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> PEBUG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../requirements.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../screenshots.html">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vdisk.html">VDISK</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PEBUG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      <li>asm8086Machine</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for asm8086Machine</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">multipledispatch</span> <span class="kn">import</span> <span class="n">dispatch</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="vm">__name__</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.asm8086Parser</span> <span class="kn">import</span> <span class="n">asm8086Parser</span>
+    <span class="kn">from</span> <span class="nn">.asm8086Listener</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">asm8086Parser</span> <span class="kn">import</span> <span class="n">asm8086Parser</span>
+    <span class="kn">from</span> <span class="nn">asm8086Listener</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="Disk"><a class="viewcode-back" href="../index.html#asm8086Machine.Disk">[docs]</a><span class="k">class</span> <span class="nc">Disk</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class emulating a Disk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Disk.__init__"><a class="viewcode-back" href="../index.html#asm8086Machine.Disk.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor. Initialize the vdisk object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (int): Size in bytes of the vdisk.</span>
+<span class="sd">            filename (str): Real filename of the vdisk in the filesystem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">),</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span> <span class="o">=</span> <span class="p">[</span><span class="mb">0b00000000</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Diskinfo &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Filename: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="si">}</span><span class="s2"> // Size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="si">}</span><span class="s2"> bytes.&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Disk size &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Filename of the real disk &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span>
+
+<div class="viewcode-block" id="Disk.write"><a class="viewcode-back" href="../index.html#asm8086Machine.Disk.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Write bytes to the virtual disk.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sector:  Sector where the byte is written.</span>
+<span class="sd">            value: The byte to be written.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if successful, False if not.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">sector</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">sector</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid sector.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid value.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">sector</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Disk.read"><a class="viewcode-back" href="../index.html#asm8086Machine.Disk.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sector</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Read a virtual disk sector.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            sector (int): Sector to be read.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: the read byte or -1 if there were any problem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sector</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">sector</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid sector.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">sector</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="Disk.load"><a class="viewcode-back" href="../index.html#asm8086Machine.Disk.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Load the virtual disk from a real file.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if was successful, False if not,</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Disk::load() =&gt; Problem accessing </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Disk.save"><a class="viewcode-back" href="../index.html#asm8086Machine.Disk.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the virtual disk to a real file.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if was successful, False if not,</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">,</span> <span class="s1">&#39;w+b&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Disk.save() =&gt; Problem accessing </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">binary_format</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_disk</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">binary_format</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">True</span></div></div>
+
+
+<div class="viewcode-block" id="Memory"><a class="viewcode-back" href="../index.html#asm8086Machine.Memory">[docs]</a><span class="k">class</span> <span class="nc">Memory</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class emulating paginated memory bank.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        peek: Retrieve the content of a memory address.</span>
+<span class="sd">        poke: Write a value to a memory address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pages</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pages</span> <span class="o">=</span> <span class="n">pages</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset_cursor</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_page</span> <span class="o">=</span> <span class="mi">49152</span>  <span class="c1"># Like the old one C000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span> <span class="o">=</span> <span class="mi">65536</span>  <span class="c1"># 64K for page.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_memory</span> <span class="o">=</span> <span class="p">[[</span><span class="mb">0b00000000</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pages</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; * &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">peek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        peek(self, address: int) -&gt; int</span>
+<span class="sd">        Retrieve the content of a memory address.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            address (int): Adress where to peek.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Pointed address value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_page</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">peek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        peek(self, page: int, address: int) -&gt; int</span>
+<span class="sd">        Retrieve the content of a memory address.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            page (int): Page memory.</span>
+<span class="sd">            address (int): Adress where to peek.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Pointed address value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_memory</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="nb">int</span><span class="p">(</span><span class="n">address</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Memory.peek(): Invalid address.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_page</span> <span class="o">=</span> <span class="n">page</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memory</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">)][</span><span class="nb">int</span><span class="p">(</span><span class="n">address</span><span class="p">)]</span>
+
+    <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">peek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        peek(self, page: str, address: str) -&gt; int</span>
+<span class="sd">        Retrieve the content of a memory address.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            page (str): Page memory in hexadecimal.</span>
+<span class="sd">            address (str): Adress where to peek in hexadecimal.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Pointed address value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+
+    <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        poke(self, page: int, ºaddress: int, value: int) -&gt; bool</span>
+<span class="sd">        Write a value to a memory address.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            page (int): Page memory.</span>
+<span class="sd">            address (int): Adress where to peek.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: Operation result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">255</span> <span class="ow">or</span> \
+                <span class="n">page</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">page</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_memory</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="n">address</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span> <span class="ow">or</span> <span class="n">address</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Memory.poke(): Invalid address or value.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_page</span> <span class="o">=</span> <span class="n">page</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_memory</span><span class="p">[</span><span class="n">page</span><span class="p">][</span><span class="n">address</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Cpu"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu">[docs]</a><span class="k">class</span> <span class="nc">Cpu</span><span class="p">(</span><span class="n">asm8086Listener</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class emulating a 8086 CPU.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span> <span class="o">=</span> <span class="mi">16</span>
+
+        <span class="c1"># 16 bit X86 registers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AX</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BX</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CX</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DX</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SP</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BP</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SI</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DI</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">IP</span> <span class="o">=</span> <span class="mb">0b0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+
+        <span class="c1"># Register Flags</span>
+        <span class="c1"># https://www.tutorialspoint.com/flag-register-of-8086-microprocessor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SF</span> <span class="o">=</span> <span class="mb">0b0</span>  <span class="c1"># Sign (D7)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ZF</span> <span class="o">=</span> <span class="mb">0b0</span>  <span class="c1"># Zero (D6)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CY</span> <span class="o">=</span> <span class="mb">0b0</span>  <span class="c1"># Carry bit (D0)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OP</span> <span class="o">=</span> <span class="mb">0b0</span>  <span class="c1"># Parity (D2)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OF</span> <span class="o">=</span> <span class="mb">0b0</span>  <span class="c1"># Overflow (D11)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AC</span> <span class="o">=</span> <span class="mb">0b0</span>  <span class="c1"># Auxiliary carry (for BCD Arithmetic) (D4)</span>
+
+        <span class="c1"># Control flags not implemented</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+
+<div class="viewcode-block" id="Cpu.asm_shr"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.asm_shr">[docs]</a>    <span class="k">def</span> <span class="nf">asm_shr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">rest</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CY</span> <span class="o">=</span> <span class="n">x</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x</span> <span class="o">&amp;</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">rest</span></div>
+
+<div class="viewcode-block" id="Cpu.asm_shl"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.asm_shl">[docs]</a>    <span class="k">def</span> <span class="nf">asm_shl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">rest</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CY</span> <span class="o">=</span> <span class="n">x</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x</span> <span class="o">&amp;</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">rest</span></div>
+
+<div class="viewcode-block" id="Cpu.asm_not"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.asm_not">[docs]</a>    <span class="k">def</span> <span class="nf">asm_not</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="k">return</span> <span class="o">~</span><span class="n">a</span></div>
+
+<div class="viewcode-block" id="Cpu.asm_or"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.asm_or">[docs]</a>    <span class="k">def</span> <span class="nf">asm_or</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">|</span> <span class="n">b</span></div>
+
+<div class="viewcode-block" id="Cpu.asm_xor"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.asm_xor">[docs]</a>    <span class="k">def</span> <span class="nf">asm_xor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">^</span> <span class="n">b</span></div>
+
+<div class="viewcode-block" id="Cpu.asm_and"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.asm_and">[docs]</a>    <span class="k">def</span> <span class="nf">asm_and</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_not_yet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This part of the CPU hasn&#39;t been implemented yet. =)&quot;</span><span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_bin</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert any integer into 8 bit binary format.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x (int): The integer to be converted.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: 8 bit binary as string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_bin</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">bits</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert any integer into n bit binary format.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x (int): The integer to be converted.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: n bit binary as string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_hex</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert any integer into 16 bit hexadecimal format.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x (int): The integer to be converted.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: 16 bit hexadecimal as string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Cpu.print_status_flags"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.print_status_flags">[docs]</a>    <span class="k">def</span> <span class="nf">print_status_flags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Print the status of the flags. &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SF=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">SF</span><span class="si">}</span><span class="s2"> ZF=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ZF</span><span class="si">}</span><span class="s2"> CY=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">CY</span><span class="si">}</span><span class="s2"> OP=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">OP</span><span class="si">}</span><span class="s2"> OF=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">OF</span><span class="si">}</span><span class="s2"> AC=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">AC</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Cpu.print_registers"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.print_registers">[docs]</a>    <span class="k">def</span> <span class="nf">print_registers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Print the CPU registers and it&#39;s value.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;AX=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">AX</span><span class="p">)</span><span class="si">}</span><span class="s2"> BX=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BX</span><span class="p">)</span><span class="si">}</span><span class="s2">  CX=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CX</span><span class="p">)</span><span class="si">}</span><span class="s2">  DX=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DX</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;SP=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SP</span><span class="p">)</span><span class="si">}</span><span class="s2"> BP=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BP</span><span class="p">)</span><span class="si">}</span><span class="s2">  SI=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SI</span><span class="p">)</span><span class="si">}</span><span class="s2">  DI=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_bin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DI</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Cpu.move"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.move">[docs]</a>    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">from_begin</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">from_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Copy a memory region to other memory region.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            memory (Memory): A Memory class object.</span>
+<span class="sd">            from_begin (int): Source&#39;s begin.</span>
+<span class="sd">            from_end (int): Source&#39;s end.</span>
+<span class="sd">            destination (int): Destination&#39;s begin.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: Operation result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">destination</span> <span class="o">&gt;</span> <span class="n">from_end</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">from_begin</span><span class="p">,</span> <span class="n">from_end</span><span class="p">):</span>
+                <span class="n">dist_pointer</span> <span class="o">=</span> <span class="n">from_begin</span> \
+                    <span class="k">if</span> <span class="n">destination</span> <span class="o">+</span> <span class="n">source</span> <span class="o">==</span> <span class="n">from_begin</span> <span class="k">else</span> <span class="n">destination</span> <span class="o">+</span> <span class="n">source</span> <span class="o">-</span> <span class="n">from_begin</span>
+                <span class="n">memory</span><span class="o">.</span><span class="n">poke</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">dist_pointer</span><span class="p">,</span> <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">source</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">from_end</span> <span class="o">-</span> <span class="n">from_begin</span><span class="si">}</span><span class="s2"> byte/s copied.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid value.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Cpu.fill"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.fill">[docs]</a>    <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Fill a memory region with a specified pattern.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            memory (Memory): A Memory class object.</span>
+<span class="sd">            start (int): Source&#39;s begin.</span>
+<span class="sd">            end (int): Source&#39;s end.</span>
+<span class="sd">            pattern (str): Pattern.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: Operation result. Always true.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">poke</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="nb">ord</span><span class="p">(</span><span class="n">pattern</span><span class="p">[</span><span class="n">cursor</span><span class="p">]))</span>
+            <span class="n">cursor</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">cursor</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Cpu.search"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Search a pattern in the memory. Staring from &lt;start&gt; to the end of the page.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            memory (Memory): Memory class object.</span>
+<span class="sd">            start (int): Starting point from the search.</span>
+<span class="sd">            pattern (str): Pattern to search for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            [str]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">found_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pointer</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="k">while</span> <span class="n">pointer</span> <span class="o">&lt;</span> <span class="n">memory</span><span class="o">.</span><span class="n">_offsets</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># Did I find the first char of the pattern? If so, let&#39;s search for the rest</span>
+            <span class="k">if</span> <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">pointer</span><span class="p">)</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="n">pattern</span><span class="p">[</span><span class="n">idx</span><span class="p">]):</span>
+                <span class="n">pointer_aux</span> <span class="o">=</span> <span class="n">pointer</span>
+                <span class="k">while</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pointer_aux</span> <span class="o">&lt;</span> <span class="n">memory</span><span class="o">.</span><span class="n">_offsets</span> <span class="ow">and</span> \
+                        <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">pointer_aux</span><span class="p">)</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="n">pattern</span><span class="p">[</span><span class="n">idx</span><span class="p">]):</span>
+                    <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">pointer_aux</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="n">pointer_aux</span> <span class="o">-</span> <span class="n">pointer</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern</span><span class="p">):</span>
+                    <span class="n">found_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pointer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">found_list</span></div>
+
+<div class="viewcode-block" id="Cpu.load_into"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.load_into">[docs]</a>    <span class="k">def</span> <span class="nf">load_into</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a text into memory, starting from an address.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            memory (Memory): Memory object class.</span>
+<span class="sd">            start (int): Address memory where to begin.</span>
+<span class="sd">            text (str): Text to be load into.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">poke</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="n">idx</span><span class="p">,</span> <span class="nb">ord</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="Cpu.compare"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.compare">[docs]</a>    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">cfrom</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cend</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cto</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compares two memory regions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            memory (Memory): Memory object class.</span>
+<span class="sd">            cfrom (int): Source address memory where to start.</span>
+<span class="sd">            cend (int): Source address memory where to end.</span>
+<span class="sd">            cto (int): Destination address memory.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            [str]: The differences between regions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">diffs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfrom</span><span class="p">,</span> <span class="n">cend</span><span class="p">):</span>
+            <span class="n">org</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="n">dist_pointer</span> <span class="o">=</span> <span class="n">cfrom</span> <span class="k">if</span> <span class="n">cto</span> <span class="o">+</span> <span class="n">a</span> <span class="o">==</span> <span class="n">cfrom</span> <span class="k">else</span> <span class="n">cto</span> <span class="o">+</span> <span class="n">a</span> <span class="o">-</span> <span class="n">cfrom</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="p">,</span> <span class="n">dist_pointer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">org</span> <span class="o">!=</span> <span class="n">dist</span><span class="p">:</span>
+                <span class="n">diffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">memory</span><span class="o">.</span><span class="n">active_page</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">a</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span>
+                             <span class="s1">&#39;</span><span class="si">%02X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">org</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%02X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dist</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span>
+                             <span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">memory</span><span class="o">.</span><span class="n">active_page</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dist_pointer</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">diffs</span></div>
+
+<div class="viewcode-block" id="Cpu.cat"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.cat">[docs]</a>    <span class="k">def</span> <span class="nf">cat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">disk</span><span class="p">:</span> <span class="n">Disk</span><span class="p">,</span> <span class="n">addrb</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">addrn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shows the content of the vdisk region.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            disk: A Disk class type object.</span>
+<span class="sd">            addrb: Start address.</span>
+<span class="sd">            addrn: End address.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bytes_per_row</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">pointer</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ascvisual</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">addrn</span> <span class="o">-</span> <span class="n">addrb</span> <span class="o">&lt;</span> <span class="n">bytes_per_row</span><span class="p">:</span>  <span class="c1"># One single row</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%06X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">addrb</span><span class="p">,</span> <span class="n">addrn</span><span class="p">):</span>
+                <span class="n">byte</span> <span class="o">=</span> <span class="n">disk</span><span class="o">.</span><span class="n">read_from_vdisk</span><span class="p">(</span><span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span>
+                <span class="n">peek</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%02X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">byte</span>
+                <span class="n">ascvisual</span> <span class="o">+=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="k">if</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span><span class="o">.</span><span class="n">isprintable</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;.&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">peek</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">((</span><span class="n">bytes_per_row</span> <span class="o">-</span> <span class="n">pointer</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">ascvisual</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># two or more rows</span>
+            <span class="k">while</span> <span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span> <span class="o">&lt;</span> <span class="n">addrn</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pointer</span> <span class="o">%</span> <span class="n">bytes_per_row</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">((</span><span class="n">bytes_per_row</span> <span class="o">-</span> <span class="n">pointer</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">ascvisual</span><span class="p">)</span>
+                    <span class="n">ascvisual</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%06X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="n">byte</span> <span class="o">=</span> <span class="n">disk</span><span class="o">.</span><span class="n">read_from_vdisk</span><span class="p">(</span><span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span>
+                <span class="n">peek</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%02X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">byte</span>
+                <span class="n">ascvisual</span> <span class="o">+=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="k">if</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span><span class="o">.</span><span class="n">isprintable</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;.&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">peek</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Cpu.display"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.display">[docs]</a>    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">addrb</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">addrn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Displays a memory region.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            memory: A Memory class type object.</span>
+<span class="sd">            addrb: Start address.</span>
+<span class="sd">            addrn: End address.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">active_page</span>
+        <span class="n">bytes_per_row</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">pointer</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ascvisual</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">addrn</span> <span class="o">-</span> <span class="n">addrb</span> <span class="o">&lt;</span> <span class="n">bytes_per_row</span><span class="p">:</span>  <span class="c1"># One single row</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">addrb</span><span class="p">,</span> <span class="n">addrn</span><span class="p">):</span>
+                <span class="n">byte</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span>
+                <span class="n">peek</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%02X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">byte</span>
+                <span class="n">ascvisual</span> <span class="o">+=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="k">if</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span><span class="o">.</span><span class="n">isprintable</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;.&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">peek</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">((</span><span class="n">bytes_per_row</span> <span class="o">-</span> <span class="n">pointer</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">ascvisual</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># two or more rows</span>
+            <span class="k">while</span> <span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span> <span class="o">&lt;</span> <span class="n">addrn</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pointer</span> <span class="o">%</span> <span class="n">bytes_per_row</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">((</span><span class="n">bytes_per_row</span> <span class="o">-</span> <span class="n">pointer</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">ascvisual</span><span class="p">)</span>
+                    <span class="n">ascvisual</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">memory</span><span class="o">.</span><span class="n">active_page</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="s1">&#39;</span><span class="si">%04X</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="n">byte</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">pointer</span> <span class="o">+</span> <span class="n">addrb</span><span class="p">)</span>
+                <span class="n">peek</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%02X</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">byte</span>
+                <span class="n">ascvisual</span> <span class="o">+=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="k">if</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span><span class="o">.</span><span class="n">isprintable</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;.&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">peek</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Cpu.write_to_vdisk"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.write_to_vdisk">[docs]</a>    <span class="k">def</span> <span class="nf">write_to_vdisk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">disk</span><span class="p">:</span> <span class="n">Disk</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">firstsector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes to vdisk a memory block.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            memory (Memory): A Memory type class object.</span>
+<span class="sd">            disk (Disk): A Disk type class object.</span>
+<span class="sd">            address (int): Source memory address.</span>
+<span class="sd">            firstsector (int): Destination sector address.</span>
+<span class="sd">            number (int): Number of bytes to be copied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">disk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">firstsector</span><span class="p">,</span> <span class="n">memory</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">address</span> <span class="o">+</span> <span class="n">i</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Cpu.read_from_vdisk"><a class="viewcode-back" href="../index.html#asm8086Machine.Cpu.read_from_vdisk">[docs]</a>    <span class="k">def</span> <span class="nf">read_from_vdisk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">disk</span><span class="p">:</span> <span class="n">Disk</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">firstsector</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes to memory a vdisk block.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            memory (Memory): A Memory type class object.</span>
+<span class="sd">            disk (Disk): A Disk type class object.</span>
+<span class="sd">            address (int): Destination memory address.</span>
+<span class="sd">            firstsector (int): Source sector address.</span>
+<span class="sd">            number (int): Number of bytes to be copied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">poke</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">disk</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">firstsector</span> <span class="o">+</span> <span class="n">i</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Cpu.enterProg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterProg">[docs]</a>    <span class="k">def</span> <span class="nf">enterProg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ProgContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterProg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitProg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitProg">[docs]</a>    <span class="k">def</span> <span class="nf">exitProg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ProgContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitProg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterLine"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterLine">[docs]</a>    <span class="k">def</span> <span class="nf">enterLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">LineContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterLine</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitLine"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitLine">[docs]</a>    <span class="k">def</span> <span class="nf">exitLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">LineContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitLine</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterInstruction"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterInstruction">[docs]</a>    <span class="k">def</span> <span class="nf">enterInstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">InstructionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterInstruction</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitInstruction"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitInstruction">[docs]</a>    <span class="k">def</span> <span class="nf">exitInstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">InstructionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitInstruction</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterLbl"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterLbl">[docs]</a>    <span class="k">def</span> <span class="nf">enterLbl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">LblContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterLbl</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitLbl"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitLbl">[docs]</a>    <span class="k">def</span> <span class="nf">exitLbl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">LblContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitLbl</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterAssemblerdirective"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterAssemblerdirective">[docs]</a>    <span class="k">def</span> <span class="nf">enterAssemblerdirective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblerdirectiveContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterAssemblerdirective</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitAssemblerdirective"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitAssemblerdirective">[docs]</a>    <span class="k">def</span> <span class="nf">exitAssemblerdirective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblerdirectiveContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitAssemblerdirective</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterRw"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterRw">[docs]</a>    <span class="k">def</span> <span class="nf">enterRw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RwContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterRw</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitRw"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitRw">[docs]</a>    <span class="k">def</span> <span class="nf">exitRw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RwContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitRw</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterRb"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterRb">[docs]</a>    <span class="k">def</span> <span class="nf">enterRb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RbContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterRb</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitRb"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitRb">[docs]</a>    <span class="k">def</span> <span class="nf">exitRb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RbContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitRb</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterRs"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterRs">[docs]</a>    <span class="k">def</span> <span class="nf">enterRs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RsContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterRs</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitRs"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitRs">[docs]</a>    <span class="k">def</span> <span class="nf">exitRs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RsContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitRs</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterCseg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterCseg">[docs]</a>    <span class="k">def</span> <span class="nf">enterCseg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">CsegContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterCseg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitCseg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitCseg">[docs]</a>    <span class="k">def</span> <span class="nf">exitCseg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">CsegContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitCseg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterDseg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterDseg">[docs]</a>    <span class="k">def</span> <span class="nf">enterDseg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DsegContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterDseg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitDseg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitDseg">[docs]</a>    <span class="k">def</span> <span class="nf">exitDseg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DsegContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitDseg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterDw"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterDw">[docs]</a>    <span class="k">def</span> <span class="nf">enterDw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DwContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterDw</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitDw"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitDw">[docs]</a>    <span class="k">def</span> <span class="nf">exitDw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DwContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitDw</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterDb"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterDb">[docs]</a>    <span class="k">def</span> <span class="nf">enterDb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DbContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterDb</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitDb"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitDb">[docs]</a>    <span class="k">def</span> <span class="nf">exitDb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DbContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitDb</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterDd"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterDd">[docs]</a>    <span class="k">def</span> <span class="nf">enterDd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DdContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterDd</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitDd"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitDd">[docs]</a>    <span class="k">def</span> <span class="nf">exitDd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DdContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitDd</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterEqu"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterEqu">[docs]</a>    <span class="k">def</span> <span class="nf">enterEqu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">EquContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterEqu</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitEqu"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitEqu">[docs]</a>    <span class="k">def</span> <span class="nf">exitEqu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">EquContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitEqu</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterIf_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterIf_">[docs]</a>    <span class="k">def</span> <span class="nf">enterIf_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">If_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterIf_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitIf_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitIf_">[docs]</a>    <span class="k">def</span> <span class="nf">exitIf_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">If_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitIf_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterAssemblerexpression"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterAssemblerexpression">[docs]</a>    <span class="k">def</span> <span class="nf">enterAssemblerexpression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblerexpressionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterAssemblerexpression</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitAssemblerexpression"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitAssemblerexpression">[docs]</a>    <span class="k">def</span> <span class="nf">exitAssemblerexpression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblerexpressionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitAssemblerexpression</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterAssemblerlogical"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterAssemblerlogical">[docs]</a>    <span class="k">def</span> <span class="nf">enterAssemblerlogical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblerlogicalContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterAssemblerlogical</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitAssemblerlogical"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitAssemblerlogical">[docs]</a>    <span class="k">def</span> <span class="nf">exitAssemblerlogical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblerlogicalContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitAssemblerlogical</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterAssemblerterm"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterAssemblerterm">[docs]</a>    <span class="k">def</span> <span class="nf">enterAssemblerterm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblertermContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterAssemblerterm</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitAssemblerterm"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitAssemblerterm">[docs]</a>    <span class="k">def</span> <span class="nf">exitAssemblerterm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">AssemblertermContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitAssemblerterm</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterEndif_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterEndif_">[docs]</a>    <span class="k">def</span> <span class="nf">enterEndif_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">Endif_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterEndif_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitEndif_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitEndif_">[docs]</a>    <span class="k">def</span> <span class="nf">exitEndif_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">Endif_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitEndif_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterEnd"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterEnd">[docs]</a>    <span class="k">def</span> <span class="nf">enterEnd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">EndContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterEnd</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitEnd"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitEnd">[docs]</a>    <span class="k">def</span> <span class="nf">exitEnd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">EndContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitEnd</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterOrg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterOrg">[docs]</a>    <span class="k">def</span> <span class="nf">enterOrg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">OrgContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterOrg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitOrg"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitOrg">[docs]</a>    <span class="k">def</span> <span class="nf">exitOrg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">OrgContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitOrg</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterTitle"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterTitle">[docs]</a>    <span class="k">def</span> <span class="nf">enterTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">TitleContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterTitle</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitTitle"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitTitle">[docs]</a>    <span class="k">def</span> <span class="nf">exitTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">TitleContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitTitle</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterInclude_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterInclude_">[docs]</a>    <span class="k">def</span> <span class="nf">enterInclude_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">Include_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterInclude_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitInclude_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitInclude_">[docs]</a>    <span class="k">def</span> <span class="nf">exitInclude_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">Include_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitInclude_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterExpressionlist"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterExpressionlist">[docs]</a>    <span class="k">def</span> <span class="nf">enterExpressionlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ExpressionlistContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterExpressionlist</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitExpressionlist"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitExpressionlist">[docs]</a>    <span class="k">def</span> <span class="nf">exitExpressionlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ExpressionlistContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitExpressionlist</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterLabel"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterLabel">[docs]</a>    <span class="k">def</span> <span class="nf">enterLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">LabelContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterLabel</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitLabel"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitLabel">[docs]</a>    <span class="k">def</span> <span class="nf">exitLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">LabelContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitLabel</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterExpression"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterExpression">[docs]</a>    <span class="k">def</span> <span class="nf">enterExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ExpressionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterExpression</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitExpression"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitExpression">[docs]</a>    <span class="k">def</span> <span class="nf">exitExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ExpressionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitExpression</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterMultiplyingExpression"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterMultiplyingExpression">[docs]</a>    <span class="k">def</span> <span class="nf">enterMultiplyingExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">MultiplyingExpressionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterMultiplyingExpression</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitMultiplyingExpression"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitMultiplyingExpression">[docs]</a>    <span class="k">def</span> <span class="nf">exitMultiplyingExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">MultiplyingExpressionContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitMultiplyingExpression</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterArgument"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterArgument">[docs]</a>    <span class="k">def</span> <span class="nf">enterArgument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ArgumentContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterArgument</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitArgument"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitArgument">[docs]</a>    <span class="k">def</span> <span class="nf">exitArgument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">ArgumentContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitArgument</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterPtr"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterPtr">[docs]</a>    <span class="k">def</span> <span class="nf">enterPtr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">PtrContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterPtr</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitPtr"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitPtr">[docs]</a>    <span class="k">def</span> <span class="nf">exitPtr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">PtrContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitPtr</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterDollar"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterDollar">[docs]</a>    <span class="k">def</span> <span class="nf">enterDollar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DollarContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterDollar</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitDollar"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitDollar">[docs]</a>    <span class="k">def</span> <span class="nf">exitDollar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">DollarContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitDollar</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterRegister_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterRegister_">[docs]</a>    <span class="k">def</span> <span class="nf">enterRegister_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">Register_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterRegister_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitRegister_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitRegister_">[docs]</a>    <span class="k">def</span> <span class="nf">exitRegister_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">Register_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitRegister_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterString_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterString_">[docs]</a>    <span class="k">def</span> <span class="nf">enterString_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">String_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterString_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitString_"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitString_">[docs]</a>    <span class="k">def</span> <span class="nf">exitString_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">String_Context</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitString_</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterName"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterName">[docs]</a>    <span class="k">def</span> <span class="nf">enterName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">NameContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterName</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitName"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitName">[docs]</a>    <span class="k">def</span> <span class="nf">exitName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">NameContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitName</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterNumber"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterNumber">[docs]</a>    <span class="k">def</span> <span class="nf">enterNumber</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">NumberContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterNumber</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitNumber"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitNumber">[docs]</a>    <span class="k">def</span> <span class="nf">exitNumber</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">NumberContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitNumber</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterOpcode"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterOpcode">[docs]</a>    <span class="k">def</span> <span class="nf">enterOpcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">OpcodeContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterOpcode</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitOpcode"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitOpcode">[docs]</a>    <span class="k">def</span> <span class="nf">exitOpcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">OpcodeContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitOpcode</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterRep"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterRep">[docs]</a>    <span class="k">def</span> <span class="nf">enterRep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RepContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterRep</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitRep"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitRep">[docs]</a>    <span class="k">def</span> <span class="nf">exitRep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">RepContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitRep</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.enterComment"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.enterComment">[docs]</a>    <span class="k">def</span> <span class="nf">enterComment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">CommentContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">enterComment</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Cpu.exitComment"><a class="viewcode-back" href="../asm8086Machine.html#asm8086Machine.Cpu.exitComment">[docs]</a>    <span class="k">def</span> <span class="nf">exitComment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">asm8086Parser</span><span class="o">.</span><span class="n">CommentContext</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exitComment</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_yet</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Pablo Niklas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

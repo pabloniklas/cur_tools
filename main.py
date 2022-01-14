@@ -2,7 +2,7 @@
 import curses
 import sys
 
-from src.cur_tools import cur_tools
+from modules import cur_tools
 
 
 # import lorem

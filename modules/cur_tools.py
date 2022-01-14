@@ -11,6 +11,8 @@ import string
 import textwrap
 from curses import ascii
 
+from typing import List
+
 # from var_dump import var_dump
 
 STATUSBAR_PREFIX = " StatusBar | "
@@ -114,7 +116,7 @@ def curses_end():
     curses.endwin()
 
 
-def __popup(s: curses.window, color: curses, title: string, txt: string):
+def _popup(s: curses.window, color: curses, title: string, txt: string):
     mh, mw = s.getmaxyx()
     w = len(txt) + 6
 
@@ -140,7 +142,7 @@ def info_win(s: curses.window, txt: string):
     """
     color = _PAIR_WINDOW_BG_LOWER
     title = "Info Window"
-    __popup(s, color, title, txt)
+    _popup(s, color, title, txt)
 
 
 def error_win(s: curses.window, txt: string):
@@ -153,7 +155,7 @@ def error_win(s: curses.window, txt: string):
     """
     color = _PAIR_ERROR_WINDOW
     title = "Error Window"
-    __popup(s, color, title, txt)
+    _popup(s, color, title, txt)
 
 
 def init_win(height: int, width: int, wx: int, wy: int, title: str = "",
@@ -234,7 +236,7 @@ def end_win(w: curses.window):
     del w
 
 
-def __menu_hotkey_option(choices: list) -> list:
+def _menu_hotkey_option(choices: list) -> List[str]:
     """INTERNAL - Given a list of options, returns a list of the hotkeys for every option.
 
     Args:
@@ -298,9 +300,9 @@ def status_bar(stdscr: curses.window, intxt: str):
     stdscr.refresh()
 
 
-def __menu_option_refresh(window_menu: curses.window, row: [int], max_length: int,
-                          choice: [str], hotkey_list: [str],
-                          word_color: int, hotkey_color: int):
+def _menu_option_refresh(window_menu: curses.window, row: List[int], max_length: int,
+                         choice: List[str], hotkey_list: List[str],
+                         word_color: int, hotkey_color: int):
     """INTERNAL - Refresh the menu option
 
     Args:
@@ -348,7 +350,7 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
     max_length += 2
 
     # Discovering the hotkeys
-    hotkey_list = __menu_hotkey_option(choices)
+    hotkey_list = _menu_hotkey_option(choices)
 
     # Creating a new list to keep the code simple
     hotkeys = []
@@ -369,12 +371,12 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
 
         # First option selected
         if row == 0:
-            __menu_option_refresh(window_menu, row, max_length, parent_choice, hotkey_list,
-                                  _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
+            _menu_option_refresh(window_menu, row, max_length, parent_choice, hotkey_list,
+                                 _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
 
         else:
-            __menu_option_refresh(window_menu, row, max_length, parent_choice, hotkey_list,
-                                  _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
+            _menu_option_refresh(window_menu, row, max_length, parent_choice, hotkey_list,
+                                 _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
 
         row += 1
 
@@ -384,10 +386,10 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
     # Submenu main cycle.
     highlight_option = 0
 
-    __menu_option_refresh(window_menu, highlight_option, max_length,
-                          choices[highlight_option],
-                          hotkey_list,
-                          _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
+    _menu_option_refresh(window_menu, highlight_option, max_length,
+                         choices[highlight_option],
+                         hotkey_list,
+                         _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
 
     status_bar(stdscr, choices[highlight_option][1])
 
@@ -400,49 +402,47 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
         if chr(pressed).upper() in hotkeys:
             old_highlight_option = highlight_option
 
-            highlight_option = __search_in_list(hotkey_list, chr(pressed), 0) - 1
+            highlight_option = _search_in_list(hotkey_list, chr(pressed), 0) - 1
 
-            __menu_option_refresh(window_menu, old_highlight_option, max_length,
-                                  choices[old_highlight_option],
-                                  hotkey_list,
-                                  _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
+            _menu_option_refresh(window_menu, old_highlight_option, max_length,
+                                 choices[old_highlight_option],
+                                 hotkey_list,
+                                 _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
 
             status_bar(stdscr, choices[highlight_option][1])
 
-        # curses_status_bar(stdscr, "STATUS BAR | pressed: {}".format(pressed))
+        elif pressed == 66:  # curses.KEY_DOWN:
 
-        if pressed == 66:  # curses.KEY_DOWN:
-
-            __menu_option_refresh(window_menu, highlight_option, max_length,
-                                  choices[highlight_option],
-                                  hotkey_list,
-                                  _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
+            _menu_option_refresh(window_menu, highlight_option, max_length,
+                                 choices[highlight_option],
+                                 hotkey_list,
+                                 _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
 
             status_bar(stdscr, choices[highlight_option][1])
 
             highlight_option += 1
 
             if highlight_option >= len(choices) - 1:
-                highlight_option = len(choices) - 1
+                highlight_option = 0
 
-        if pressed == 65:  # curses.KEY_UP:
-            __menu_option_refresh(window_menu, highlight_option, max_length,
-                                  choices[highlight_option],
-                                  hotkey_list,
-                                  _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
+        elif pressed == 65:  # curses.KEY_UP:
+            _menu_option_refresh(window_menu, highlight_option, max_length,
+                                 choices[highlight_option],
+                                 hotkey_list,
+                                 _PAIR_ITEM_UNSELECTED, _PAIR_HOTKEY_UNSELECTED)
 
             status_bar(stdscr, choices[highlight_option][1])
 
             highlight_option -= 1
 
             if highlight_option < 0:
-                highlight_option = 0
+                highlight_option = len(choices) - 1
 
         # Draw the new option
-        __menu_option_refresh(window_menu, highlight_option, max_length,
-                              choices[highlight_option],
-                              hotkey_list,
-                              _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
+        _menu_option_refresh(window_menu, highlight_option, max_length,
+                             choices[highlight_option],
+                             hotkey_list,
+                             _PAIR_ITEM_SELECTED, _PAIR_HOTKEY_SELECTED)
 
         status_bar(stdscr, choices[highlight_option][1])
 
@@ -468,7 +468,7 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
             return second_choice
 
 
-def __search_in_list(my_list: list, key: string, idx: int = 0) -> int:
+def _search_in_list(my_list: list, key: string, idx: int = 0) -> int:
     """INTERNAL - Search a string in a list of arrays.
 
     Args:
@@ -514,7 +514,7 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
 
     # Drawing the bar
     # status_bar(stdscr, " MenuBar DEMO | Make your choice =)")
-    hotkey_list = __menu_hotkey_option(menubar_options)
+    hotkey_list = _menu_hotkey_option(menubar_options)
     idx = 0
     for opc in menubar_options:
         stdscr.addstr(0, col, " " + opc + " ", curses.color_pair(_PAIR_WINDOW_BG_LOWER))
@@ -546,7 +546,7 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
 
     stdscr.nodelay(False)
 
-    if __search_in_list(hotkey_list, key, 2) != -1:
+    if _search_in_list(hotkey_list, key, 2) != -1:
         try:
             idx = hotkeys.index(key.upper())
         except ValueError:
@@ -596,10 +596,10 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
     return idx + 1, submenu_choice
 
 
-def __simple_field_input_type(w: curses.window, input_type: str, field_x: int,
-                              field_y: int, cursor_offset: int,
-                              length: int, key: curses.ascii, value: str,
-                              hidden: bool = False) -> [int, str]:
+def _simple_field_input_type(w: curses.window, input_type: str, field_x: int,
+                             field_y: int, cursor_offset: int,
+                             length: int, key: curses.ascii, value: str,
+                             hidden: bool = False) -> tuple:
     """INTERNAL - Logic behind the input field.
 
     Args:
@@ -727,10 +727,10 @@ def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, 
             bool_expr_type = "curses.ascii.isalpha(key)"
 
         w.move(field_x, field_y + cursor_offset)
-        cursor_offset, value = __simple_field_input_type(w, bool_expr_type,
-                                                         field_x, field_y,
-                                                         cursor_offset, length, key, value,
-                                                         hidden)
+        cursor_offset, value = _simple_field_input_type(w, bool_expr_type,
+                                                        field_x, field_y,
+                                                        cursor_offset, length, key, value,
+                                                        hidden)
         w.refresh()
         key = w.getch()
 
@@ -746,7 +746,7 @@ def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, 
     return value
 
 
-def text_justification(text: string, width: int) -> list:
+def text_justification(text: string, width: int) -> List[str]:
     """Justifity a text inside the desired width.
 
     Args:
@@ -793,12 +793,12 @@ def text_justification(text: string, width: int) -> list:
     return jlist
 
 
-def __items_len(thelist):
+def _items_len(thelist) -> int:
     return sum([len(x) for x in thelist])
 
 
 # https://code.activestate.com/recipes/414870-align-text-string-using-spaces-between-words-to-fi/
-def align_string(s: string, width: int, last_paragraph_line: int = 0):
+def align_string(s: string, width: int, last_paragraph_line: int = 0) -> str:
     """Align string to specified width.
 
     Args:
@@ -826,7 +826,7 @@ def align_string(s: string, width: int, last_paragraph_line: int = 0):
 
     if not last_paragraph_line:
         # number of spaces to add
-        left_count = w - __items_len(items)
+        left_count = w - _items_len(items)
         while left_count > 0 and len(items) > 1:
             for i in range(len(items) - 1):
                 items[i] += ' '
@@ -838,7 +838,7 @@ def align_string(s: string, width: int, last_paragraph_line: int = 0):
     return res
 
 
-def align_paragraph(paragraph, width, debug=0):
+def align_paragraph(paragraph, width, debug=0) -> List[str]:
     """Align paragraph to a specific width.
 
     Args:
@@ -879,8 +879,8 @@ def align_paragraph(paragraph, width, debug=0):
     return wrapped
 
 
-def __text_browser_refresh(w: curses.window, start_idx: int,
-                           end_idx: int, text_list: list):
+def _text_browser_refresh(w: curses.window, start_idx: int,
+                          end_idx: int, text_list: list):
     row = 2
     for i in range(start_idx, end_idx):
         w.addstr(row, 2, text_list[i], curses.color_pair(_PAIR_WINDOW_BG_LOWER))
@@ -889,7 +889,7 @@ def __text_browser_refresh(w: curses.window, start_idx: int,
     w.refresh()
 
 
-def __text_browser_refresh_bar(w: curses.window, start_idx: int, height: int, scale: int, width: int):
+def _text_browser_refresh_bar(w: curses.window, start_idx: int, height: int, scale: int, width: int):
     """INTERNAL - Browser of the refresh bar
 
     w (curses.window): Curses window object
@@ -960,13 +960,13 @@ def text_browser(s: curses.window, title: string, text: string, width: int = 50,
     scale = int(max_length / num_rows * (height - 2)) - 1
 
     if num_rows > max_length:
-        __text_browser_refresh_bar(w, start_idx, height, scale, width)
+        _text_browser_refresh_bar(w, start_idx, height, scale, width)
 
     w.addstr(height + 1, 2, "<ESC> Exit /// Up/Down to browse".center(width),
              curses.color_pair(_PAIR_WINDOW_HELPER))
 
     # Populating
-    __text_browser_refresh(w, start_idx, end_idx, text_list)
+    _text_browser_refresh(w, start_idx, end_idx, text_list)
 
     pressed = s.getch()
     s.nodelay(True)
@@ -982,10 +982,10 @@ def text_browser(s: curses.window, title: string, text: string, width: int = 50,
                 start_idx += 1
                 end_idx += 1
 
-        __text_browser_refresh(w, start_idx, end_idx, text_list)
+        _text_browser_refresh(w, start_idx, end_idx, text_list)
 
         if num_rows > max_length:
-            __text_browser_refresh_bar(w, start_idx, height, scale, width)
+            _text_browser_refresh_bar(w, start_idx, height, scale, width)
 
         pressed = s.getch()
 
