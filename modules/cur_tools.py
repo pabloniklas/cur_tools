@@ -7,11 +7,16 @@
 
 import curses
 import re
+import os
 import string
 import textwrap
 from curses import ascii
 
 from typing import List
+import calendar
+import datetime
+import copy
+
 
 # from var_dump import var_dump
 
@@ -55,6 +60,10 @@ INPUT_TYPE_ALPHANUMERIC = 0
 INPUT_TYPE_NUMERIC = 1
 INPUT_TYPE_ALPHABETIC = 2
 
+# ASCI Graphics
+CHAR_LOW_GRAY = "░"
+CHAR_MEDIUM_GRAY = "▒"
+CHAR_HIGH_GRAY = "▓"
 
 def curses_init(scr: curses.window) -> curses.window:
     """Initialize curses.
@@ -126,17 +135,17 @@ def _popup(s: curses.window, color: curses, title: string, txt: string):
     h = 7
     wx = int((mh - h) / 2)
     wy = int((mw - w) / 2)
-    wininfo = init_win(h, w, wx, wy, title, color)
+    wininfo,shadow = init_win(h, w, wx, wy, title, color)
     wininfo.addstr(3, 3, txt)
     wininfo.getch()
-    end_win(wininfo)
+    end_win(wininfo,shadow)
 
 
 def info_win(s: curses.window, txt: string):
     """Creates an info window
 
     Args:
-        s (curses) : Curses scrren object.
+        s (curses) : Curses screen object.
         txt (string) : Text to be displayed.
 
     """
@@ -157,10 +166,459 @@ def error_win(s: curses.window, txt: string):
     title = "Error Window"
     _popup(s, color, title, txt)
 
+def confirm_dialog(s: curses.window, message: string):
+    """Show a confirmation dialog.
+
+    Args:
+        s (curses.window): Curses screen object.
+        message (string): Message to be displayed.
+
+    Returns:
+        _type_: Return value
+    """
+    height, width = 7, 50
+    start_y, start_x = (s.getmaxyx()[0] - height) // 2, (s.getmaxyx()[1] - width) // 2
+    win = curses.newwin(height, width, start_y, start_x)
+    win.box()
+    win.addstr(2, 2, message)
+    win.addstr(4, 2, "[Y] Sí    [N] No")
+    win.refresh()
+    while True:
+        key = win.getch()
+        if key in [ord('y'), ord('Y')]:
+            return True
+        elif key in [ord('n'), ord('N')]:
+            return False
+
+def file_selector(s: curses.window, start_path="."):
+    """Show a file selector dialog.
+
+    Args:
+        s (curses.window): Curses screen object.
+        start_path (str, optional): Initial path. Defaults to ".".
+
+    Returns:
+        _type_: Return value
+    """
+    current_path = os.path.abspath(start_path)
+    while True:
+        files = os.listdir(current_path)
+        files.insert(0, "..")  # Para navegar al directorio padre
+        selected = vertical_menu(s, files, 0, 0)
+        chosen = files[selected]
+        new_path = os.path.join(current_path, chosen)
+        if os.path.isdir(new_path):
+            current_path = os.path.abspath(new_path)
+        else:
+            return new_path
+
+def progress_bar_create(s:curses.window, max_value: int, title: str = "Progress") -> curses.window:
+    """
+    Create a progress bar window.
+
+    Args:
+        stdscr: Standard screen object provided by curses.wrapper.
+        max_value (int): The maximum value of the progress bar.
+        title (str): Title for the progress bar (default: "Progress").
+
+    Returns:
+        A curses window object representing the progress bar.
+    """
+    height, width = 3, 50
+    start_y, start_x = (s.getmaxyx()[0] // 2) - 1, (s.getmaxyx()[1] - width) // 2
+
+    win = init_win(height, width, start_x, start_y, title)
+
+    progress_label = f"0/{max_value}"
+    bar_width = width - len(progress_label) - 4
+    win.addstr(1, 2, f"[{' ' * bar_width}] {progress_label}")
+    win.refresh()
+
+    return win
+
+def progress_bar_update(s: curses.window, current_value: int, max_value: int) -> None:
+    """
+    Update the progress bar with the current value.
+
+    Args:
+        win (curses.window): The progress bar window.
+        current_value (int): The current progress value.
+        max_value (int): The maximum progress value.
+    """
+    width = s.getmaxyx()[1] - 10
+    progress = int((current_value / max_value) * width)
+    bar = CHAR_MEDIUM_GRAY * progress + " " * (width - progress)
+
+    s.addstr(1, 2, f"[{bar}]")
+    s.refresh()
+
+def progress_bar_close(win: curses.window) -> None:
+    """
+    Close and clear the progress bar window.
+
+    Args:
+        win (curses.window): The progress bar window to close.
+    """
+    win.clear()
+    win.refresh()
+
+def input_box(s: curses.window, label: str,
+              length: int, help="", type: int = 0, hidden: bool = False) -> str:
+    """
+    Provides a simple input box.
+
+    Args:
+        s (curses.window): A curses window object.
+        label (str): Field label.
+        length (int): Field length.
+        help (str): Field help.
+        type (int): Field type:
+            0 - INPUT_TYPE_ALPHANUMERIC
+            1 - INPUT_TYPE_NUMERIC
+            2 - INPUT_TYPE_ALPHABETIC
+        hidden (bool): True means to hide the chars.
+
+    Returns:
+        str: The value of the input.
+    """
+    w = length + len(label) + 10
+
+    mh, mw = s.getmaxyx()
+
+    h = 7
+    wx = int((mh - h) / 2)
+    wy = int((mw - w) / 2)
+
+    win_input, sha_input = init_win(h, w, wx, wy, "Input Box")
+
+    value = simple_input_text_field(s, win_input, 3, 3, label, length, help, type, hidden)
+
+    end_win(win_input, sha_input)
+
+    return value
+
+
+def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: str,
+                            length: int, help="", type: int = 0, hidden: bool = False) -> str:
+    """
+    Creates a text field input.
+
+    Args:
+        s (curses.window): Curses screen object.
+        w (curses.window): Curses window object.
+        x (int): Row position.
+        y (int): Column position.
+        label (str): Field label.
+        length (int): Length of the input field.
+        help (str): Help text.
+        type (int): Field type (0-Alphanumeric, 1-Numeric, 2-Alphabetic).
+        hidden (bool): True if the input should be hidden.
+
+    Returns:
+        str: The value of the input.
+    """
+    value = ""
+    status_bar(s, help)
+
+    # Label
+    w.addstr(x, y, label + ":", curses.color_pair(_PAIR_WINDOW_BG_LOWER))
+
+    # Draw the gap
+    field_y = y + len(label) + 2
+    field_x = x
+    w.addstr(field_x, field_y, ' '.ljust(length), curses.color_pair(_PAIR_INPUT_FIELD))
+
+    # Main input cycle
+    curses.curs_set(1)
+    w.nodelay(False)
+    cursor_offset = 0
+    while True:
+        w.move(field_x, field_y + cursor_offset)
+        w.refresh()
+        key = w.getch()
+
+        if key in (curses.ascii.NL, curses.ascii.ESC):  # Enter or ESC
+            break
+        elif key == curses.ascii.DEL or key == 127:  # Backspace
+            if cursor_offset > 0:
+                cursor_offset -= 1
+                value = value[:cursor_offset] + value[cursor_offset + 1:]
+                w.addstr(field_x, field_y + cursor_offset, ' ')
+        elif key == curses.KEY_LEFT:  # Move cursor left
+            if cursor_offset > 0:
+                cursor_offset -= 1
+        elif key == curses.KEY_RIGHT:  # Move cursor right
+            if cursor_offset < len(value):
+                cursor_offset += 1
+        elif len(value) < length and valid_input(key, type):
+            # Insert character
+            char = chr(key)
+            value = value[:cursor_offset] + char + value[cursor_offset:]
+            cursor_offset += 1
+
+        # Redraw the input field
+        display_value = ''.join(['*' if hidden else c for c in value])
+        w.addstr(field_x, field_y, display_value.ljust(length), curses.color_pair(_PAIR_INPUT_FIELD))
+
+    # Handle ESC key to cancel input
+    if key == curses.ascii.ESC:
+        value = ""
+
+    curses.curs_set(0)
+    return value
+
+
+def valid_input(key: int, input_type: int) -> bool:
+    """
+    Validates the input based on type.
+
+    Args:
+        key (int): The key pressed.
+        input_type (int): The input type (0-Alphanumeric, 1-Numeric, 2-Alphabetic).
+
+    Returns:
+        bool: True if the key is valid, False otherwise.
+    """
+    char = chr(key)
+    if input_type == 0:  # Alphanumeric
+        return char.isalnum() or char.isspace()
+    elif input_type == 1:  # Numeric
+        return char.isdigit()
+    elif input_type == 2:  # Alphabetic
+        return char.isalpha()
+    return False
+
+        
+def multi_select_menu(s: curses.window, options:List[str], title="Selecciona opciones:"):
+    """Show a multi select menu dialog.
+
+    Args:
+        s (curses.window): Curses screen object.
+        options (List[str]): Options list.
+        title (str, optional): Title message. Defaults to "Selecciona opciones:".
+
+    Returns:
+        _type_: Choices list
+    """
+    selected = [False] * len(options)
+    current_index = 0
+
+    while True:
+        s.clear()
+        s.addstr(0, 0, title)
+        for i, option in enumerate(options):
+            marker = "[X]" if selected[i] else "[ ]"
+            if i == current_index:
+                s.addstr(i + 1, 0, f"{marker} {option}", curses.A_REVERSE)
+            else:
+                s.addstr(i + 1, 0, f"{marker} {option}")
+        s.addstr(len(options) + 2, 0, "Presiona Espacio para seleccionar, Enter para confirmar.")
+        s.refresh()
+
+        key = s.getch()
+        if key == curses.KEY_UP:
+            current_index = (current_index - 1) % len(options)
+        elif key == curses.KEY_DOWN:
+            current_index = (current_index + 1) % len(options)
+        elif key == ord(' '):  # Espacio para seleccionar/deseleccionar
+            selected[current_index] = not selected[current_index]
+        elif key == 10:  # Enter para confirmar
+            return [options[i] for i, sel in enumerate(selected) if sel]
+
+def calendar_widget(s: curses.window):
+    """Show a calendar widget.
+
+    Args:
+        s (curses.window): Curses screen object.
+
+    Returns:
+        _type_: Date.
+    """
+    today = datetime.date.today()
+    current_year, current_month = today.year, today.month
+    selected_day = today.day
+
+    while True:
+        s.clear()
+        display_calendar(s, current_year, current_month, selected_day)
+        s.addstr(10, 0, "Usa las flechas para moverte, Enter para seleccionar.")
+        s.refresh()
+
+        key = s.getch()
+        selected_day = update_selected_day(key, current_year, current_month, selected_day)
+        if key == 10:  # Enter
+            return datetime.date(current_year, current_month, selected_day)
+
+
+def display_calendar(s: curses.window, year: int, month: int, selected_day: int):
+    """Display the calendar on the screen.
+
+    Args:
+        s (curses.window): Curses screen object.
+        year (int): Year to display.
+        month (int): Month to display.
+        selected_day (int): Currently selected day.
+    """
+    cal = calendar.monthcalendar(year, month)
+    s.addstr(0, 0, f"{calendar.month_name[month]} {year}")
+    for week in cal:
+        for day in week:
+            if day == 0:
+                s.addstr("   ")  # Día vacío
+            elif day == selected_day:
+                s.addstr(f"[{day:2}]", curses.A_REVERSE)
+            else:
+                s.addstr(f" {day:2} ")
+        s.addstr("\n")
+
+
+def update_selected_day(key: int, year: int, month: int, selected_day: int) -> int:
+    """Update the selected day based on the key pressed.
+
+    Args:
+        key (int): Key pressed.
+        year (int): Current year.
+        month (int): Current month.
+        selected_day (int): Currently selected day.
+
+    Returns:
+        int: Updated selected day.
+    """
+    if key == curses.KEY_LEFT:
+        return max(1, selected_day - 1)
+    elif key == curses.KEY_RIGHT:
+        return min(calendar.monthrange(year, month)[1], selected_day + 1)
+    elif key == curses.KEY_UP:
+        return max(1, selected_day - 7)
+    elif key == curses.KEY_DOWN:
+        return min(calendar.monthrange(year, month)[1], selected_day + 7)
+    return selected_day
+
+def bar_chart(s: curses.window, data:List[int], title="Gráfico de barras"):
+    """Show a bar chart.
+
+    Args:
+        s (curses.window): Curses screen object.
+        data (List[int]): Data list.
+        title (str, optional): Title message. Defaults to "Gráfico de barras".
+    """
+    max_value = max(data.values())
+    max_width = s.getmaxyx()[1] - 20
+
+    s.clear()
+    s.addstr(0, 0, title)
+    for i, (label, value) in enumerate(data.items()):
+        bar_length = int((value / max_value) * max_width)
+        s.addstr(i + 2, 0, f"{label:15}: {'#' * bar_length} ({value})")
+    s.addstr(len(data) + 3, 0, "Presiona cualquier tecla para salir.")
+    s.refresh()
+    s.getch()
+
+def table_viewer(s: curses.window, data, col_width=15):
+    """Show a table viewer.
+
+    Args:
+        s (curses.window): Curses screen object.
+        data (_type_): Data list.
+        col_width (int, optional): Column width. Defaults to 15.
+    """
+    rows, cols = len(data), len(data[0])
+    top, left = 0, 0
+
+    while True:
+        s.clear()
+        for r in range(min(rows - top, s.getmaxyx()[0] - 2)):
+            for c in range(min(cols - left, s.getmaxyx()[1] // col_width)):
+                s.addstr(r, c * col_width, f"{data[top + r][left + c]:<{col_width}}")
+        s.addstr(s.getmaxyx()[0] - 1, 0, "Usa las flechas para moverte, Q para salir.")
+        s.refresh()
+
+        key = s.getch()
+        if key == curses.KEY_UP and top > 0:
+            top -= 1
+        elif key == curses.KEY_DOWN and top < rows - 1:
+            top += 1
+        elif key == curses.KEY_LEFT and left > 0:
+            left -= 1
+        elif key == curses.KEY_RIGHT and left < cols - 1:
+            left += 1
+        elif key in [ord('q'), ord('Q')]:
+            break
+
+def show_notification(s: curses.window, message:string, duration=2):
+    """Show a notification.
+
+    Args:
+        s (curses.window): Curses screen object.
+        message (string): Message to be displayed.
+        duration (int, optional): Duration in seconds. Defaults to 2.
+    """
+    height, width = 3, len(message) + 4
+    start_y, start_x = (s.getmaxyx()[0] - height) // 2, (s.getmaxyx()[1] - width) // 2
+    win = curses.newwin(height, width, start_y, start_x)
+    win.box()
+    win.addstr(1, 2, message)
+    win.refresh()
+    curses.napms(duration * 1000)
+    win.clear()
+
+
+def simple_text_editor(s: curses.window, filename="untitled.txt"):
+    """Simple text editor.
+
+    Args:
+        s (curses.window): Curses screen object.
+        filename (str, optional): File name. Defaults to "untitled.txt".
+    """
+    curses.curs_set(1)
+    text = []
+    cursor_y, cursor_x = 0, 0
+
+    while True:
+        s.clear()
+        s.addstr(0, 0, f"Archivo: {filename}  |  F2: Guardar  |  F10: Salir", curses.A_REVERSE)
+        for i, line in enumerate(text):
+            s.addstr(i + 1, 0, line)
+        s.move(cursor_y + 1, cursor_x)
+        s.refresh()
+
+        key = s.getch()
+        if key in [curses.KEY_F10]:  # Salir
+            break
+        elif key in [curses.KEY_F2]:  # Guardar
+            with open(filename, 'w') as file:
+                file.write('\n'.join(text))
+        elif key in [curses.KEY_BACKSPACE, 127]:
+            if cursor_x > 0:
+                text[cursor_y] = text[cursor_y][:cursor_x - 1] + text[cursor_y][cursor_x:]
+                cursor_x -= 1
+            elif cursor_y > 0:
+                cursor_x = len(text[cursor_y - 1])
+                text[cursor_y - 1] += text.pop(cursor_y)
+                cursor_y -= 1
+        elif key == curses.KEY_DOWN:
+            cursor_y = min(cursor_y + 1, len(text) - 1)
+        elif key == curses.KEY_UP:
+            cursor_y = max(0, cursor_y - 1)
+        elif key == curses.KEY_LEFT:
+            cursor_x = max(0, cursor_x - 1)
+        elif key == curses.KEY_RIGHT:
+            cursor_x = min(len(text[cursor_y]), cursor_x + 1)
+        elif key in [10, 13]:  # Enter
+            text.insert(cursor_y + 1, text[cursor_y][cursor_x:])
+            text[cursor_y] = text[cursor_y][:cursor_x]
+            cursor_y += 1
+            cursor_x = 0
+        else:
+            if len(text) <= cursor_y:
+                text.append("")
+            text[cursor_y] = text[cursor_y][:cursor_x] + chr(key) + text[cursor_y][cursor_x:]
+            cursor_x += 1
+
 
 def init_win(height: int, width: int, wx: int, wy: int, title: str = "",
              bgcolor: curses = _PAIR_WINDOW_BG_LOWER,
-             border_type: int = 0) -> curses.window:
+             border_type: int = 0) -> tuple[curses.window,curses.window]:
     """Creates a windows dialog.
 
     Args:
@@ -180,60 +638,38 @@ def init_win(height: int, width: int, wx: int, wy: int, title: str = "",
 
     if border_type == 0:
         w.box()
-        # for x in range(0, width):
-        #     w.move(0, x)
-        #     w.addch(curses.ACS_HLINE)
-        #
-        # w.addstr(0, 5, "*",
-        #          curses.color_pair(_PAIR_WINDOW_BG_UPPER) | curses.A_BOLD | curses.A_REVERSE)
-
-        """
-        ls - left side,
-        rs - right side,
-        ts - top side,
-        bs - bottom side,
-        tl - top left-hand corner,
-        tr - top right-hand corner,
-        bl - bottom left-hand corner, and
-        br - bottom right-hand corner. 
-        """
-        # w.border(chr(186), chr(186), chr(186), chr(186), chr(201), chr(187), chr(200), chr(188))
 
     w.bkgd(' ', curses.color_pair(bgcolor))
 
-    # Shadow
-    # https://stackoverflow.com/questions/17096352/ncurses-shadow-of-a-window
-    # w.attron(_PAIR_WINDOW_SHADOW)
-    #
-    # for i in range(wy + 2, wy + width + 1):
-    #     w.move((wx + height), i)
-    #     w.addch(' ')
-    #
-    # for i in range(wx + 1, wx + height + 1):
-    #     w.move(i, (wy + width))
-    #     w.addch(' ')
-    #     w.move(i, (wy + width + 1))
-    #     w.addch(' ')
-    #
-    # w.attroff(_PAIR_WINDOW_SHADOW)
+    # Create shadow effect
+    s = curses.newwin(height, width, wx + 1, wy + 2)
+    s.bkgd(" ", curses.A_DIM)  # Shadow background
+    s.refresh()
+    
+    w.refresh()
 
     if title != "":
         col = int((width - len(title) - 4) / 2)
         w.addstr(0, col, f'[ {title} ]', curses.A_REVERSE)
 
-    return w
+    return w,s
 
-
-def end_win(w: curses.window):
+def end_win(w: curses.window, s: curses.window):
     """Closes a curses window.
 
     Args:
         w (curses): curses window object.
+        s (curses): curses window object.
     """
     w.bkgd(' ', curses.color_pair(_PAIR_SCREEN_BG))
     w.erase()
     w.refresh()
-    del w
+    
+    s.bkgd(' ', curses.color_pair(_PAIR_SCREEN_BG))
+    s.erase()
+    s.refresh()
+    
+    del w,s
 
 
 def _menu_hotkey_option(choices: list) -> List[str]:
@@ -328,7 +764,7 @@ def _menu_option_refresh(window_menu: curses.window, row: List[int], max_length:
                        curses.color_pair(hotkey_color))
 
 
-def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int:
+def vertical_menu(stdscr: curses.window, choices: List[str], wx: int, wy: int) -> int:
     """Creates a vertical menu of options, allowing the user to choose between them.
 
     Args:
@@ -358,13 +794,13 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
         hotkeys.append(h[1])
 
     # Drawing the window
-    window_menu: curses.window = init_win(len(choices) + 2, max_length + 4, wx, wy)
+    window_menu, shadow_menu = init_win(len(choices) + 2, max_length + 4, wx, wy)
 
     # Printing the choices of the submenu
     row = 0
     for choice in choices:
 
-        parent_choice = choice
+        parent_choice = choice.copy()   # tipos mutables se pasan por referencia con "=". Ojo.
 
         if len(choice) == 3:  # Submenu
             parent_choice[0] = choice[0].ljust(max_length-1)+ ">"
@@ -381,6 +817,7 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
         row += 1
 
 
+    shadow_menu.refresh()
     window_menu.refresh()
 
     # Submenu main cycle.
@@ -450,23 +887,22 @@ def vertical_menu(stdscr: curses.window, choices: list, wx: int, wy: int) -> int
         pressed = window_menu.getch()
 
     if pressed == 67:
-        end_win(window_menu)
+        end_win(window_menu, shadow_menu)
         return -10
     elif pressed == 68:
-        end_win(window_menu)
+        end_win(window_menu, shadow_menu)
         return -11
     else:
         if len(choices[highlight_option]) == 2:
-            end_win(window_menu)
+            end_win(window_menu, shadow_menu)
             return highlight_option + 1
         else:   # submenu
             second_choices = choices[highlight_option][2]
             second_choice = vertical_menu(stdscr, second_choices, wx + row - 1,
                                           wy + max_length + 4)
-            end_win(window_menu)
+            end_win(window_menu, shadow_menu)
 
             return second_choice
-
 
 def _search_in_list(my_list: list, key: string, idx: int = 0) -> int:
     """INTERNAL - Search a string in a list of arrays.
@@ -595,7 +1031,6 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
 
     return idx + 1, submenu_choice
 
-
 def _simple_field_input_type(w: curses.window, input_type: str, field_x: int,
                              field_y: int, cursor_offset: int,
                              length: int, key: curses.ascii, value: str,
@@ -614,7 +1049,7 @@ def _simple_field_input_type(w: curses.window, input_type: str, field_x: int,
         hidden (bool): If True, print "*" instead of char.
 
     Returns:
-        The tuple [cursor_offset, value]
+        tuple [cursor_offset, value]
     """
 
     w.move(field_x, field_y + cursor_offset)
@@ -636,114 +1071,6 @@ def _simple_field_input_type(w: curses.window, input_type: str, field_x: int,
             w.addch(" ")
 
     return cursor_offset, value
-
-
-def input_box(s: curses.window, label: string,
-              length: int, help="", type: int = 0, hidden: bool = False) -> string:
-    """Provides a simple input box
-
-    Args:
-        s (curses.windows): A curses window object.
-        label (string): Field label.
-        length (int): Field length.
-        help (string): Field help.
-        type (int): Field type:
-            INPUT_TYPE_ALPHANUMERIC
-            INPUT_TYPE_NUMERIC
-            INPUT_TYPE_ALPHABETIC
-        hidden (bool): True means to hide the chars
-
-    Returns:
-        value (string)
-    """
-
-    w = length + len(label) + 10
-
-    mh, mw = s.getmaxyx()
-
-    h = 7
-    wx = int((mh - h) / 2)
-    wy = int((mw - w) / 2)
-
-    win_input: curses.window = init_win(h, w, wx, wy, "Input Box")
-
-    value = simple_input_text_field(s, win_input, 3, 3, label, length, help, type, hidden)
-
-    end_win(win_input)
-
-    return value
-
-
-def simple_input_text_field(s: curses.window, w: curses.window, x: int, y: int, label: string,
-                            length: int, help="", type: int = 0, hidden: bool = False) -> string:
-    """Creates a text field input.
-
-    Args:
-        s (curses.window): Curses screen object.
-        w (curses.window): Curses window object.
-        x (int): row.
-        y (int): col.
-        label (string): Field label.
-        length (int): Length of the input field.
-        help (string): Help text.
-        type (int): Field type.
-            INPUT_TYPE_ALPHANUMERIC
-            INPUT_TYPE_NUMERIC
-            INPUT_TYPE_ALPHABETIC
-
-    Returns:
-        String: The value of the input.
-    """
-
-    value = ""
-
-    status_bar(s, help)
-
-    # Label
-    w.addstr(x, y, label + ":", curses.color_pair(_PAIR_WINDOW_BG_LOWER))
-
-    # Draw the gap
-    field_y = y + len(label) + 2
-    field_x = x
-    w.addstr(field_x, field_y, ' '.ljust(length + 1), curses.color_pair(_PAIR_INPUT_FIELD))
-
-    # Main cycle.
-    curses.curs_set(1)  # make cursor visible
-    curses.echo(False)
-    w.nodelay(True)
-    key = w.getch()
-    cursor_offset = 0
-    w.move(field_x, field_y + cursor_offset)
-    w.attron(curses.color_pair(_PAIR_INPUT_FIELD))
-
-    while key != curses.ascii.NL and key != curses.ascii.ESC:
-
-        bool_expr_type = False
-        if type == 0:
-            bool_expr_type = "curses.ascii.isalnum(key) or curses.ascii.isblank(key)"
-        elif type == 1:
-            bool_expr_type = "curses.ascii.isdigit(key)"
-        elif type == 2:
-            bool_expr_type = "curses.ascii.isalpha(key)"
-
-        w.move(field_x, field_y + cursor_offset)
-        cursor_offset, value = _simple_field_input_type(w, bool_expr_type,
-                                                        field_x, field_y,
-                                                        cursor_offset, length, key, value,
-                                                        hidden)
-        w.refresh()
-        key = w.getch()
-
-        # TODO: Insert
-
-    # Cancel Input when ESC is pressed
-    if key == curses.ascii.ESC:
-        value = ""
-
-    curses.curs_set(0)  # make cursor invisible
-    end_win(w)
-
-    return value
 
 
 def text_justification(text: string, width: int) -> List[str]:
@@ -940,7 +1267,7 @@ def text_browser(s: curses.window, title: string, text: string, width: int = 50,
         end_idx = num_rows - 1
 
     # Drawing the browser
-    w: curses.window = init_win(height + 2, width + 4, 3, 3, title,
+    w,s = init_win(height + 2, width + 4, 3, 3, title,
                                 _PAIR_WINDOW_BG_LOWER, 0)
     w.attron(curses.A_REVERSE)
     w.move(1, 0 + width + 3)
@@ -990,4 +1317,4 @@ def text_browser(s: curses.window, title: string, text: string, width: int = 50,
         pressed = s.getch()
 
     # Closing the browser
-    end_win(w)
+    end_win(w,s)

@@ -62,6 +62,13 @@ def myapp(scr: curses.window):
             data = cur_tools.input_box(s, "Password", 40, "Type your most important password =)",
                                        cur_tools.INPUT_TYPE_ALPHANUMERIC, True)
             cur_tools.info_win(s, data)
+        elif m == 2 and mm == 4:
+            data = cur_tools.form_win(s, "Form demo", [
+                ["Name", "Enter your name", cur_tools.INPUT_TYPE_ALPHANUMERIC],
+                ["Age", "Enter your age", cur_tools.INPUT_TYPE_NUMERIC],
+                ["Email", "Enter your email", cur_tools.INPUT_TYPE_EMAIL]
+            ])
+            cur_tools.info_win(s, data)
         elif m == 3 and mm == 1:
             cur_tools.info_win(s, "Demo for cur tools. By Pablo Niklas")
         else:
