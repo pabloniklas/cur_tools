@@ -818,20 +818,8 @@ def vertical_menu(stdscr: curses.window, choices: List[str], wx: int, wy: int) -
             pressed != curses.ascii.NL:
 
         # Jump to the option if it's hotkey is pressed.
-        if chr(pressed).upper() in hotkeys:
-            old_highlight_option = highlight_option
-
-            highlight_option = search_in_list(hotkey_list, chr(pressed), 0) - 1
-
-            menu_option_refresh(window_menu, old_highlight_option, max_length,
-                                choices[old_highlight_option],
-                                hotkey_list,
-                                const.PAIR_ITEM_UNSELECTED, const.PAIR_HOTKEY_UNSELECTED)
-
-            status_bar(stdscr, choices[highlight_option][1])
-
-        elif pressed == 66:  # curses.KEY_DOWN:
-            menu_option_refresh(window_menu, highlight_option, max_length,
+        if pressed == 66:  # curses.KEY_DOWN:
+            menu_option_refresh(window_menu, highlight_option , max_length,
                                 choices[highlight_option],
                                 hotkey_list,
                                 const.PAIR_ITEM_UNSELECTED, const.PAIR_HOTKEY_UNSELECTED)
@@ -855,6 +843,16 @@ def vertical_menu(stdscr: curses.window, choices: List[str], wx: int, wy: int) -
 
             if highlight_option < 0:
                 highlight_option = len(choices) - 1
+                
+        elif chr(pressed).upper() in hotkeys:
+            old_highlight_option = highlight_option
+
+            highlight_option = search_in_list(hotkeys, chr(pressed), 0)
+
+            menu_option_refresh(window_menu, old_highlight_option, max_length,
+                                choices[old_highlight_option],
+                                hotkey_list,
+                                const.PAIR_ITEM_UNSELECTED, const.PAIR_HOTKEY_UNSELECTED)
 
 
         # Draw the new option
