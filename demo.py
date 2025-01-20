@@ -3,6 +3,8 @@ import curses
 import sys
 
 from modules import cur_tools
+from modules import const
+import time
 
 
 # import lorem
@@ -18,28 +20,34 @@ def myapp(scr: curses.window):
     s = cur_tools.curses_init(scr)
 
     myops = {
-        "File": [
-            ["Exit", "Exit this demo."]
-        ],
-        "Demos": [
-            ["Browse", "Text browsing demo."],
-            ["Input", "Some input demo.",
-                [
-                    ["Normal", "Normal input demo"],
-                    ["Password", "Password input demo"]
-                ]
-            ],
-            ["Forms", "Forms demo"]
-        ],
-        "Help": [
-            ["About", "About this app."]
-        ]
+        "File": {
+            "Load": {"description": "Load a file."},
+            "Save": {"description": "Save a file."},
+            "Save As": {"description": "Save a file with a new name."},
+            "Exit": {"description": "Exit this demo."}
+        },
+        "Demos": {
+            "Browse": {"description": "Text browsing demo."},
+            "Input": {
+                "description": "Some input demo.",
+                "submenu": {
+                    "Normal": {"description": "Normal input demo"},
+                    "Password": {"description": "Password input demo"}
+                }
+            },
+            "Bar Chart": {"description": "Bar chart."},
+            "Progress Bar": {"description": "A simple progress bar."},
+            "Forms (WIP)": {"description": "Forms demo"}
+        },
+        "Help": {
+            "About": {"description": "About this app."}
+        }
     }
 
     cur_tools.status_bar(s, "Press Enter or ALT+KEY to start the demo.")
     m, mm = cur_tools.menu_bar(s, myops)
 
-    while m != 1 or mm != 1:  # File->Exit
+    while m != 1 or mm != 4:  # File->Exit
 
         cur_tools.status_bar(s, f'Option: ({m} , {mm})')
 
@@ -54,20 +62,30 @@ def myapp(scr: curses.window):
                 line = file.read().replace("\n", " ")
                 cur_tools.text_browser(s, "Browsing demo", line)
                 file.close()
-        elif m == 2 and mm == 2:
+        elif m == 2 and mm == 102:
             data = cur_tools.input_box(s, "Name", 40, "Enter your name",
-                                       cur_tools.INPUT_TYPE_ALPHANUMERIC)
+                                       const.INPUT_TYPE_ALPHANUMERIC)
+            cur_tools.info_win(s, data)
+        elif m == 2 and mm == 103:
+            data = cur_tools.input_box(s, "Password", 40, "Type your most important password =)",
+                                       const.INPUT_TYPE_ALPHANUMERIC, True)
             cur_tools.info_win(s, data)
         elif m == 2 and mm == 3:
-            data = cur_tools.input_box(s, "Password", 40, "Type your most important password =)",
-                                       cur_tools.INPUT_TYPE_ALPHANUMERIC, True)
-            cur_tools.info_win(s, data)
+            cur_tools.bar_chart(s, "Bar Chart", [("A", 10), ("B", 20), ("C", 30), ("D", 40), ("E", 50)])
         elif m == 2 and mm == 4:
+            pbw,pbs=cur_tools.progress_bar_create(s, 100, "Progress Bar")
+            for i in range(101):
+                cur_tools.progress_bar_update(pbw,i,100)
+                time.sleep(100 / 1000)
+                
+            cur_tools.progress_bar_close(pbw,pbs)
+        elif m == 2 and mm == 5:
             data = cur_tools.form_win(s, "Form demo", [
-                ["Name", "Enter your name", cur_tools.INPUT_TYPE_ALPHANUMERIC],
-                ["Age", "Enter your age", cur_tools.INPUT_TYPE_NUMERIC],
-                ["Email", "Enter your email", cur_tools.INPUT_TYPE_EMAIL]
+                {"label": "Name", "placeholder": "Enter your name", "type": const.INPUT_TYPE_ALPHANUMERIC, "length": 20},
+                {"label": "Age", "placeholder": "Enter your age", "type": const.INPUT_TYPE_NUMERIC, "length": 3},
+                {"label": "Email", "placeholder": "Enter your email", "type": const.INPUT_TYPE_EMAIL, "length": 30}
             ])
+
             cur_tools.info_win(s, data)
         elif m == 3 and mm == 1:
             cur_tools.info_win(s, "Demo for cur tools. By Pablo Niklas")

@@ -180,17 +180,24 @@ def progress_bar_create(s:curses.window, max_value: int, title: str = "Progress"
     Returns:
         A curses window object representing the progress bar.
     """
-    height, width = 3, 50
-    start_y, start_x = (s.getmaxyx()[0] // 2) - 1, (s.getmaxyx()[1] - width) // 2
+    w = 30 + len(title) + 10
 
-    win,_ = init_win(height, width, start_x, start_y, title)
+    mh, mw = s.getmaxyx()
 
-    progress_label = f"0/{max_value}"
-    bar_width = width - len(progress_label) - 4
-    win.addstr(1, 2, f"[{' ' * bar_width}] {progress_label}")
+    h = 7
+    wx = int((mh - h) / 2)
+    wy = int((mw - w) / 2)
+
+    win, sha = init_win(h, w, wx, wy, title)
+    
+    #progress_label = "0%"
+    #col = int((w - len(progress_label)) / 2)
+    bar_width = w - 4
+    win.addstr(2, 2, f"{' ' * bar_width}", curses.color_pair(const.PAIR_WINDOW_BG_LOWER))
+    #win.addstr(4, col, progress_label, curses.color_pair(const.PAIR_WINDOW_BG_LOWER))
     win.refresh()
 
-    return win
+    return win,sha
 
 def progress_bar_update(s: curses.window, current_value: int, max_value: int) -> None:
     """
@@ -201,22 +208,24 @@ def progress_bar_update(s: curses.window, current_value: int, max_value: int) ->
         current_value (int): The current progress value.
         max_value (int): The maximum progress value.
     """
-    width = s.getmaxyx()[1] - 10
+    width = s.getmaxyx()[1] - 4
     progress = int((current_value / max_value) * width)
-    bar = CHAR_MEDIUM_GRAY * progress + " " * (width - progress)
+    bar = const.CHAR_MEDIUM_GRAY * progress #+ " " * (width - progress)
 
-    s.addstr(1, 2, f"[{bar}]")
+    s.addstr(2, 2, f"{bar}", curses.color_pair(const.PAIR_HOTKEY_UNSELECTED))
+    progress_label = f"{int((current_value/max_value) * 100)}%"
+    col = 2 + int((width - len(progress_label)) / 2)
+    s.addstr(4, col, progress_label)
     s.refresh()
 
-def progress_bar_close(win: curses.window) -> None:
+def progress_bar_close(w: curses.window, s:curses.window) -> None:
     """
     Close and clear the progress bar window.
 
     Args:
         win (curses.window): The progress bar window to close.
     """
-    win.clear()
-    win.refresh()
+    end_win(w, s)
 
 def input_box(s: curses.window, label: str,
               length: int, help="", type: int = 0, hidden: bool = False) -> str:
@@ -882,7 +891,25 @@ def vertical_menu(stdscr: curses.window, choices: List[str], wx: int, wy: int) -
                                         wy + max_length + 4)
             end_win(window_menu, shadow_menu)
 
-            return second_choice
+            return second_choice+101
+
+def convert_json_to_matrix(menu):
+    result = {}
+
+    for key, value in menu.items():
+        group = []
+        for subkey, subvalue in value.items():
+            if "submenu" in subvalue:  # Hay un submenú
+                group.append([
+                    subkey,
+                    subvalue["description"],
+                    convert_json_to_matrix({"submenu": subvalue["submenu"]})["submenu"]
+                ])
+            else:  # Solo tiene descripción
+                group.append([subkey, subvalue["description"]])
+        result[key] = group
+
+    return result
 
 def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
     """Generates the classic menu bar.
@@ -895,6 +922,8 @@ def menu_bar(stdscr: curses.window, options_dict: dict) -> tuple:
         int: index value of the choice of the menu bar,
         int: index value of the choice of the submenu.
     """
+
+    options_dict = convert_json_to_matrix(options_dict)
 
     menubar_options = []
 
@@ -1277,3 +1306,101 @@ def text_browser(s: curses.window, title: string, text: string, width: int = 50,
 
     # Closing the browser
     end_win(w,s)
+
+# Work in progress
+def form_win(s: curses.window, title: str, fields: list, submit_label: str = "Submit", cancel_label: str = "Cancel") -> dict:
+    """
+    Creates a form dialog with multiple input fields.
+
+    Args:
+        s (curses.window): Curses screen object.
+        title (str): Title of the form window.
+        fields (list): A list of dictionaries, each defining a field:
+            - label (str): The field label.
+            - length (int): The length of the input field.
+            - help (str): Help text for the field.
+            - type (int): Field type (0-Alphanumeric, 1-Numeric, 2-Alphabetic).
+            - hidden (bool): True if the field should hide characters.
+        submit_label (str): Label for the submit button (default: "Submit").
+        cancel_label (str): Label for the cancel button (default: "Cancel").
+
+    Returns:
+        dict: A dictionary containing field labels as keys and their input values as values,
+              or None if the form was canceled.
+    """
+    # Calculate form dimensions
+    # Compute the maximum label length, only considering valid dictionaries with a 'label' key
+    max_label_length = max(
+        len(field['label']) for field in fields if isinstance(field, dict) and 'label' in field
+    )
+
+    max_length = max(field['length'] for field in fields)
+    width = max_label_length + max_length + 15
+    height = len(fields) + 7
+    mh, mw = s.getmaxyx()
+    wx = (mh - height) // 2
+    wy = (mw - width) // 2
+
+    # Create the form window
+    _,win_form = init_win(height, width, wx, wy, title)
+
+    # Initialize field values and positions
+    field_values = {}
+    y_offset = 2
+    for field in fields:
+        win_form.addstr(y_offset, 2, f"{field['label']}:")
+        field_values[field['label']] = ""
+        y_offset += 1
+
+    # Add buttons
+    win_form.addstr(height - 3, 2, f"[{submit_label}]", curses.A_REVERSE)
+    win_form.addstr(height - 3, width - len(cancel_label) - 4, f"[{cancel_label}]", curses.A_REVERSE)
+
+    # Form interaction loop
+    curses.curs_set(1)
+    active_field = 0
+    while True:
+        # Draw input fields
+        y_offset = 2
+        for idx, field in enumerate(fields):
+            is_active = (idx == active_field)
+            value_display = ''.join(['*' if field.get('hidden', False) else c for c in field_values[field['label']]])
+            win_form.addstr(y_offset, len(field['label']) + 4, value_display.ljust(field['length']), curses.A_REVERSE if is_active else curses.A_NORMAL)
+            y_offset += 1
+
+        # Highlight buttons
+        if active_field == len(fields):  # Submit
+            win_form.addstr(height - 3, 2, f"[{submit_label}]", curses.A_BOLD | curses.A_REVERSE)
+            win_form.addstr(height - 3, width - len(cancel_label) - 4, f"[{cancel_label}]", curses.A_NORMAL)
+        elif active_field == len(fields) + 1:  # Cancel
+            win_form.addstr(height - 3, 2, f"[{submit_label}]", curses.A_NORMAL)
+            win_form.addstr(height - 3, width - len(cancel_label) - 4, f"[{cancel_label}]", curses.A_BOLD | curses.A_REVERSE)
+
+        win_form.refresh()
+
+        # Handle user input
+        key = s.getch()
+        if key in (66, 65):
+            if key == 65:
+                active_field = (active_field - 1) % (len(fields) + 2)
+            elif key == 66:
+                active_field = (active_field + 1) % (len(fields) + 2)
+        elif key == curses.ascii.NL:  # Enter key
+            if active_field < len(fields):
+                # Edit the current field
+                field = fields[active_field]
+                field_values[field['label']] = simple_input_text_field(
+                    s, win_form, 2 + active_field, len(field['label']) + 4,
+                    field['label'], field['length'], field.get('help', ""), field.get('type', 0), field.get('hidden', False)
+                )
+            elif active_field == len(fields):  # Submit
+                curses.curs_set(0)
+                return field_values
+            elif active_field == len(fields) + 1:  # Cancel
+                curses.curs_set(0)
+                return None
+        elif key == curses.ascii.ESC:  # Escape key
+            curses.curs_set(0)
+            return None
+
+
