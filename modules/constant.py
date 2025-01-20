@@ -33,10 +33,17 @@ PAIR_ITEM_UNSELECTED = _pair_pointer
 _pair_pointer += 1
 PAIR_ERROR_WINDOW = _pair_pointer
 
+_pair_pointer += 1
+PAIR_DISABLED_ITEM = _pair_pointer
+
+_pair_pointer += 1
+PAIR_DISABLED_HOTKEY = _pair_pointer
+
 # Input types
 INPUT_TYPE_ALPHANUMERIC = 0
 INPUT_TYPE_NUMERIC = 1
 INPUT_TYPE_ALPHABETIC = 2
+INPUT_TYPE_EMAIL = 3
 
 # ASCI Graphics
 CHAR_LOW_GRAY = "░"
