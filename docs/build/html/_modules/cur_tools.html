@@ -39,6 +39,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../requirements.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../functions.html">Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules.html">modules</a></li>
 </ul>
 
@@ -185,7 +186,7 @@
     <span class="n">curses</span><span class="o">.</span><span class="n">endwin</span><span class="p">()</span></div>
 
 
-<span class="k">def</span> <span class="nf">_popup</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="n">curses</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="n">string</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_popup</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="n">curses</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="n">mh</span><span class="p">,</span> <span class="n">mw</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getmaxyx</span><span class="p">()</span>
     <span class="n">w</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span> <span class="o">+</span> <span class="mi">6</span>
 
@@ -201,7 +202,7 @@
     <span class="n">end_win</span><span class="p">(</span><span class="n">wininfo</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="info_win"><a class="viewcode-back" href="../index.html#cur_tools.info_win">[docs]</a><span class="k">def</span> <span class="nf">info_win</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="n">string</span><span class="p">):</span>
+<div class="viewcode-block" id="info_win"><a class="viewcode-back" href="../index.html#cur_tools.info_win">[docs]</a><span class="k">def</span> <span class="nf">info_win</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Creates an info window</span>
 
 <span class="sd">    Args:</span>
@@ -214,7 +215,7 @@
     <span class="n">_popup</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="error_win"><a class="viewcode-back" href="../index.html#cur_tools.error_win">[docs]</a><span class="k">def</span> <span class="nf">error_win</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="n">string</span><span class="p">):</span>
+<div class="viewcode-block" id="error_win"><a class="viewcode-back" href="../index.html#cur_tools.error_win">[docs]</a><span class="k">def</span> <span class="nf">error_win</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Creates an error window</span>
 
 <span class="sd">    Args:</span>
@@ -305,14 +306,14 @@
     <span class="k">del</span> <span class="n">w</span></div>
 
 
-<div class="viewcode-block" id="_menu_hotkey_option"><a class="viewcode-back" href="../index.html#cur_tools._menu_hotkey_option">[docs]</a><span class="k">def</span> <span class="nf">_menu_hotkey_option</span><span class="p">(</span><span class="n">choices</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="_menu_hotkey_option"><a class="viewcode-back" href="../index.html#cur_tools._menu_hotkey_option">[docs]</a><span class="k">def</span> <span class="nf">_menu_hotkey_option</span><span class="p">(</span><span class="n">choices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;INTERNAL - Given a list of options, returns a list of the hotkeys for every option.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        choices (list): The list of choices.</span>
+<span class="sd">        choices (List[str]): The list of choices.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        list: The list of hotkeys for every option.</span>
+<span class="sd">        List[str]: The list of hotkeys for every option.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">hotkey_list</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -397,7 +398,7 @@
                        <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">hotkey_color</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="vertical_menu"><a class="viewcode-back" href="../index.html#cur_tools.vertical_menu">[docs]</a><span class="k">def</span> <span class="nf">vertical_menu</span><span class="p">(</span><span class="n">stdscr</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">choices</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">wx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">wy</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="vertical_menu"><a class="viewcode-back" href="../index.html#cur_tools.vertical_menu">[docs]</a><span class="k">def</span> <span class="nf">vertical_menu</span><span class="p">(</span><span class="n">stdscr</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">choices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">wx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">wy</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Creates a vertical menu of options, allowing the user to choose between them.</span>
 
 <span class="sd">    Args:</span>
@@ -537,7 +538,7 @@
             <span class="k">return</span> <span class="n">second_choice</span></div>
 
 
-<div class="viewcode-block" id="_search_in_list"><a class="viewcode-back" href="../index.html#cur_tools._search_in_list">[docs]</a><span class="k">def</span> <span class="nf">_search_in_list</span><span class="p">(</span><span class="n">my_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="_search_in_list"><a class="viewcode-back" href="../index.html#cur_tools._search_in_list">[docs]</a><span class="k">def</span> <span class="nf">_search_in_list</span><span class="p">(</span><span class="n">my_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;INTERNAL - Search a string in a list of arrays.</span>
 
 <span class="sd">    Args:</span>
@@ -707,8 +708,8 @@
     <span class="k">return</span> <span class="n">cursor_offset</span><span class="p">,</span> <span class="n">value</span></div>
 
 
-<div class="viewcode-block" id="input_box"><a class="viewcode-back" href="../index.html#cur_tools.input_box">[docs]</a><span class="k">def</span> <span class="nf">input_box</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span>
-              <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">string</span><span class="p">:</span>
+<div class="viewcode-block" id="input_box"><a class="viewcode-back" href="../index.html#cur_tools.input_box">[docs]</a><span class="k">def</span> <span class="nf">input_box</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+              <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Provides a simple input box</span>
 
 <span class="sd">    Args:</span>
@@ -743,8 +744,8 @@
     <span class="k">return</span> <span class="n">value</span></div>
 
 
-<div class="viewcode-block" id="simple_input_text_field"><a class="viewcode-back" href="../index.html#cur_tools.simple_input_text_field">[docs]</a><span class="k">def</span> <span class="nf">simple_input_text_field</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span>
-                            <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">string</span><span class="p">:</span>
+<div class="viewcode-block" id="simple_input_text_field"><a class="viewcode-back" href="../index.html#cur_tools.simple_input_text_field">[docs]</a><span class="k">def</span> <span class="nf">simple_input_text_field</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                            <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Creates a text field input.</span>
 
 <span class="sd">    Args:</span>
@@ -815,7 +816,7 @@
     <span class="k">return</span> <span class="n">value</span></div>
 
 
-<div class="viewcode-block" id="text_justification"><a class="viewcode-back" href="../index.html#cur_tools.text_justification">[docs]</a><span class="k">def</span> <span class="nf">text_justification</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="text_justification"><a class="viewcode-back" href="../index.html#cur_tools.text_justification">[docs]</a><span class="k">def</span> <span class="nf">text_justification</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Justifity a text inside the desired width.</span>
 
 <span class="sd">    Args:</span>
@@ -867,7 +868,7 @@
 
 
 <span class="c1"># https://code.activestate.com/recipes/414870-align-text-string-using-spaces-between-words-to-fi/</span>
-<div class="viewcode-block" id="align_string"><a class="viewcode-back" href="../index.html#cur_tools.align_string">[docs]</a><span class="k">def</span> <span class="nf">align_string</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">last_paragraph_line</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="align_string"><a class="viewcode-back" href="../index.html#cur_tools.align_string">[docs]</a><span class="k">def</span> <span class="nf">align_string</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">last_paragraph_line</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Align string to specified width.</span>
 
 <span class="sd">    Args:</span>
@@ -907,7 +908,7 @@
     <span class="k">return</span> <span class="n">res</span></div>
 
 
-<div class="viewcode-block" id="align_paragraph"><a class="viewcode-back" href="../index.html#cur_tools.align_paragraph">[docs]</a><span class="k">def</span> <span class="nf">align_paragraph</span><span class="p">(</span><span class="n">paragraph</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="align_paragraph"><a class="viewcode-back" href="../index.html#cur_tools.align_paragraph">[docs]</a><span class="k">def</span> <span class="nf">align_paragraph</span><span class="p">(</span><span class="n">paragraph</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Align paragraph to a specific width.</span>
 
 <span class="sd">    Args:</span>
@@ -916,7 +917,7 @@
 <span class="sd">        debug (bool):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        List of paragraph lines</span>
+<span class="sd">        List[str]: List of paragraph lines</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
@@ -949,7 +950,7 @@
 
 
 <span class="k">def</span> <span class="nf">_text_browser_refresh</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                          <span class="n">end_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+                          <span class="n">end_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
     <span class="n">row</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span><span class="p">):</span>
         <span class="n">w</span><span class="o">.</span><span class="n">addstr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">text_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">curses</span><span class="o">.</span><span class="n">color_pair</span><span class="p">(</span><span class="n">_PAIR_WINDOW_BG_LOWER</span><span class="p">))</span>
@@ -983,7 +984,7 @@
     <span class="n">w</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="text_browser"><a class="viewcode-back" href="../index.html#cur_tools.text_browser">[docs]</a><span class="k">def</span> <span class="nf">text_browser</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">):</span>
+<div class="viewcode-block" id="text_browser"><a class="viewcode-back" href="../index.html#cur_tools.text_browser">[docs]</a><span class="k">def</span> <span class="nf">text_browser</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">curses</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Text Browsing</span>
 
 <span class="sd">    Args:</span>

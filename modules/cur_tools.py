@@ -81,7 +81,7 @@ def curses_end():
     curses.endwin()
 
 
-def _popup(s: curses.window, color: curses, title: string, txt: string):
+def _popup(s: curses.window, color: curses, title: str, txt: str):
     mh, mw = s.getmaxyx()
     w = len(txt) + 6
 
@@ -97,7 +97,7 @@ def _popup(s: curses.window, color: curses, title: string, txt: string):
     end_win(wininfo,shadow)
 
 
-def info_win(s: curses.window, txt: string):
+def info_win(s: curses.window, txt: str):
     """Creates an info window
 
     Args:
@@ -110,7 +110,7 @@ def info_win(s: curses.window, txt: string):
     _popup(s, color, title, txt)
 
 
-def error_win(s: curses.window, txt: string):
+def error_win(s: curses.window, txt: str):
     """Creates an error window
 
     Args:
@@ -670,10 +670,10 @@ def menu_hotkey_option(choices: list) -> List[str]:
     """INTERNAL - Given a list of options, returns a list of the hotkeys for every option.
 
     Args:
-        choices (list): The list of choices.
+        choices (List[str]): The list of choices.
 
     Returns:
-        list: The list of hotkeys for every option.
+        List[str]: The list of hotkeys for every option.
     """
     hotkey_list = []
 
@@ -1113,7 +1113,7 @@ def _items_len(thelist) -> int:
 
 
 # https://code.activestate.com/recipes/414870-align-text-string-using-spaces-between-words-to-fi/
-def align_string(s: string, width: int, last_paragraph_line: int = 0) -> str:
+def align_string(s: str, width: int, last_paragraph_line: int = 0) -> str:
     """Align string to specified width.
 
     Args:
@@ -1153,7 +1153,7 @@ def align_string(s: string, width: int, last_paragraph_line: int = 0) -> str:
     return res
 
 
-def align_paragraph(paragraph, width, debug=0) -> List[str]:
+def align_paragraph(paragraph: List[str], width: int, debug=0) -> List[str]:
     """Align paragraph to a specific width.
 
     Args:
@@ -1162,7 +1162,7 @@ def align_paragraph(paragraph, width, debug=0) -> List[str]:
         debug (bool):
 
     Returns:
-        List of paragraph lines
+        List[str]: List of paragraph lines
     """
 
     lines = list()
@@ -1195,7 +1195,7 @@ def align_paragraph(paragraph, width, debug=0) -> List[str]:
 
 
 def _text_browser_refresh(w: curses.window, start_idx: int,
-                          end_idx: int, text_list: list):
+                          end_idx: int, text_list: List[str]):
     row = 2
     for i in range(start_idx, end_idx):
         w.addstr(row, 2, text_list[i], curses.color_pair(const.PAIR_WINDOW_BG_LOWER))
@@ -1229,7 +1229,7 @@ def _text_browser_refresh_bar(w: curses.window, start_idx: int, height: int, sca
     w.refresh()
 
 
-def text_browser(s: curses.window, title: string, text: string, width: int = 50, height: int = 20):
+def text_browser(s: curses.window, title: str, text: str, width: int = 50, height: int = 20):
     """Text Browsing
 
     Args:
