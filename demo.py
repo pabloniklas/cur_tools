@@ -72,7 +72,7 @@ def myapp(scr: curses.window):
                                        const.INPUT_TYPE_ALPHANUMERIC, True)
             cur_tools.info_win(s, data)
         elif m == 2 and mm == 3:
-            win,sha = cur_tools.init_win(10,40,10,20,"Bar Chart")
+            win,sha = cur_tools.init_win(10,40,10,25,"Bar Chart")
             cur_tools.bar_chart(win, [("A", 10), ("B", 20), ("C", 30), ("D", 40), ("E", 50)])
             cur_tools.end_win(win,sha)
         elif m == 2 and mm == 4:
@@ -105,5 +105,6 @@ def myapp(scr: curses.window):
 if __name__ == '__main__':
     curses.wrapper(myapp)
 
-print(" ===== [~] ===== ")
+print("█▓▒░⡷⠂By TTУs9⠐⢾░▒▓█")
+print("[~]")
 sys.exit(0)
