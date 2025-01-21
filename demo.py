@@ -37,6 +37,7 @@ def myapp(scr: curses.window):
             },
             "Bar Chart": {"description": "Bar chart."},
             "Progress Bar": {"description": "A simple progress bar."},
+            "Editor": {"description": "A simple text editor."},
             "Forms (WIP)": {"description": "Forms demo"}
         },
         "Help": {
@@ -71,7 +72,9 @@ def myapp(scr: curses.window):
                                        const.INPUT_TYPE_ALPHANUMERIC, True)
             cur_tools.info_win(s, data)
         elif m == 2 and mm == 3:
-            cur_tools.bar_chart(s, "Bar Chart", [("A", 10), ("B", 20), ("C", 30), ("D", 40), ("E", 50)])
+            win,sha = cur_tools.init_win(10,40,10,20,"Bar Chart")
+            cur_tools.bar_chart(win, [("A", 10), ("B", 20), ("C", 30), ("D", 40), ("E", 50)])
+            cur_tools.end_win(win,sha)
         elif m == 2 and mm == 4:
             pbw,pbs=cur_tools.progress_bar_create(s, 100, "Progress Bar")
             for i in range(101):
@@ -80,6 +83,9 @@ def myapp(scr: curses.window):
                 
             cur_tools.progress_bar_close(pbw,pbs)
         elif m == 2 and mm == 5:
+            cur_tools.simple_text_editor(s, "sample.txt")            
+            
+        elif m == 2 and mm == 6:
             data = cur_tools.form_win(s, "Form demo", [
                 {"label": "Name", "placeholder": "Enter your name", "type": const.INPUT_TYPE_ALPHANUMERIC, "length": 20},
                 {"label": "Age", "placeholder": "Enter your age", "type": const.INPUT_TYPE_NUMERIC, "length": 3},
@@ -99,5 +105,5 @@ def myapp(scr: curses.window):
 if __name__ == '__main__':
     curses.wrapper(myapp)
 
-print(" ===== Bye ===== ")
+print(" ===== [~] ===== ")
 sys.exit(0)

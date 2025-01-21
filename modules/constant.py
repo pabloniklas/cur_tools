@@ -39,6 +39,9 @@ PAIR_DISABLED_ITEM = _pair_pointer
 _pair_pointer += 1
 PAIR_DISABLED_HOTKEY = _pair_pointer
 
+_pair_pointer += 1
+PAIR_PROGRESS_BAR = _pair_pointer
+
 # Input types
 INPUT_TYPE_ALPHANUMERIC = 0
 INPUT_TYPE_NUMERIC = 1

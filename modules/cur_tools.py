@@ -64,9 +64,11 @@ def curses_init(scr: curses.window) -> curses.window:
 
     # Error Windows color
     curses.init_pair(const.PAIR_ERROR_WINDOW, curses.COLOR_WHITE, curses.COLOR_RED)
-
     curses.init_pair(const.PAIR_WINDOW_HELPER, curses.COLOR_BLACK, curses.COLOR_GREEN)
 
+    # Progress bar
+    curses.init_pair(const.PAIR_PROGRESS_BAR, curses.COLOR_WHITE, curses.COLOR_RED)
+    
     scr.bkgd(curses.color_pair(const.PAIR_SCREEN_BG))
     scr.clear()
     scr.bkgdset(' ')
@@ -193,7 +195,7 @@ def progress_bar_create(s:curses.window, max_value: int, title: str = "Progress"
     #progress_label = "0%"
     #col = int((w - len(progress_label)) / 2)
     bar_width = w - 4
-    win.addstr(2, 2, f"{' ' * bar_width}", curses.color_pair(const.PAIR_WINDOW_BG_LOWER))
+    win.addstr(2, 2, f"{' ' * bar_width}", curses.color_pair(const.PAIR_PROGRESS_BAR) | curses.A_BOLD | curses.A_REVERSE)
     #win.addstr(4, col, progress_label, curses.color_pair(const.PAIR_WINDOW_BG_LOWER))
     win.refresh()
 
@@ -210,9 +212,9 @@ def progress_bar_update(s: curses.window, current_value: int, max_value: int) ->
     """
     width = s.getmaxyx()[1] - 4
     progress = int((current_value / max_value) * width)
-    bar = const.CHAR_MEDIUM_GRAY * progress #+ " " * (width - progress)
+    bar = const.CHAR_HIGH_GRAY * progress #+ " " * (width - progress)
 
-    s.addstr(2, 2, f"{bar}", curses.color_pair(const.PAIR_HOTKEY_UNSELECTED))
+    s.addstr(2, 2, f"{bar}", curses.color_pair(const.PAIR_PROGRESS_BAR) | curses.A_BOLD | curses.A_REVERSE)
     progress_label = f"{int((current_value/max_value) * 100)}%"
     col = 2 + int((width - len(progress_label)) / 2)
     s.addstr(4, col, progress_label)
@@ -459,26 +461,50 @@ def update_selected_day(key: int, year: int, month: int, selected_day: int) -> i
         return min(calendar.monthrange(year, month)[1], selected_day + 7)
     return selected_day
 
-def bar_chart(s: curses.window, data:List[int], title="Gráfico de barras"):
-    """Show a bar chart.
+def bar_chart(stdscr, data):
+    """
+    Displays a horizontal bar chart with labeled columns.
 
     Args:
-        s (curses.window): Curses screen object.
-        data (List[int]): Data list.
-        title (str, optional): Title message. Defaults to "Gráfico de barras".
+        stdscr: Curses screen object.
+        data: List of tuples, where each tuple contains a label and a value, e.g., [("A", 10), ("B", 20)].
     """
-    max_value = max(data.values())
-    max_width = s.getmaxyx()[1] - 20
+    # Start curses colors
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)  # Bars
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)   # Background
 
-    s.clear()
-    s.addstr(0, 0, title)
-    for i, (label, value) in enumerate(data.items()):
-        bar_length = int((value / max_value) * max_width)
-        s.addstr(i + 2, 0, f"{label:15}: {'#' * bar_length} ({value})")
-    s.addstr(len(data) + 3, 0, "Presiona cualquier tecla para salir.")
-    s.refresh()
-    s.getch()
+    # Get screen dimensions
+    max_width = curses.COLS - 4 if hasattr(curses, 'COLS') else stdscr.getmaxyx()[1] - 4
+    max_height = curses.LINES - 5 if hasattr(curses, 'LINES') else stdscr.getmaxyx()[0] - 5
 
+    # Calculate maximum height and width of the chart
+    max_value = max(value for _, value in data)
+
+    # Normalize values to fit within the available screen width
+    normalized_data = [(label, int((value / max_value) * (max_width - 1))) for label, value in data]
+
+    # Draw background
+    stdscr.bkgd(' ', curses.color_pair(2))
+    stdscr.clear()
+
+    # Draw chart
+    title = "Bar Chart"
+    stdscr.addstr(1, (max_width - len(title)) // 2, title, curses.A_BOLD | curses.color_pair(2))
+
+    for i, (label, value) in enumerate(normalized_data):
+        # Calculate y position for the bar
+        y = max_height - 2 - i
+
+        # Draw the bar
+        stdscr.addstr(y, 3, " " * value, curses.color_pair(1))
+
+        # Add label below the bar
+        stdscr.addstr(max_height, 3 + i * 4, f"{label}", curses.A_BOLD)
+
+    stdscr.refresh()
+    stdscr.getch()
+        
 def table_viewer(s: curses.window, data, col_width=15):
     """Show a table viewer.
 
