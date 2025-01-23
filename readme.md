@@ -8,148 +8,104 @@ By Pablo Niklas
 
 ## Introduction
 
-The idea behind this library is to provide DOS like interface using curses.
+cur_tools is a development tools suite inspired by the look & feel of the classic DOS interfaces. These tools are designed to maximize productivity in terminal environments, offering a retro experience with modern functionality.
 
-## Prerequisites
+## Key Features
 
-*  curses package
+* Retro interface: Intuitive interface with nostalgic elements of the Turbo C environment.
 
-## Functions
+* Highly configurable: Customize colors, keyboard shortcuts, and behavior to suit your workflow.
 
-### info_win()
+* Multi-language support: Designed to facilitate tasks in various programming languages.
 
-A simple information window.
+* Modularity: Includes a set of independent tools that can be used separately or together.
 
-#### Usage
+* Portability: Compatible with UNIX-based systems and Windows.
 
-```python
-info_win(screen, txt)
+## Requirements
+
+* Python: Version 3.8 or higher.
+
+* Additional dependencies:
+
+  * curses (included in Python's standard library on UNIX).
+
+  * For Windows systems, you need to install windows-curses:
+
+```
+pip install windows-curses
 ```
 
-*  screen: Curses's screen object
-*  txt: Text to be displayed.
+## Installation
 
-#### Screenshot
+Clone this repository to your local system:
+```
+git clone https://github.com/pabloniklas/cur_tools.git
+cd cur_tools
+```
+
+Install the necessary dependencies (if applicable):
+```
+pip install -r requirements.txt
+```
+
+Run the program:
+
+```
+python demo.py
+```
+
+## Usage
+
+When you launch cur_tools, you will see a terminal-based interface with various options and tools. You can navigate using the arrow keys, select options with Enter, and access help by pressing F1.
+
+### Explore modules such as:
+
+* Text editor: Fast and efficient editing of source files.
+
+* File explorer: Navigate directories and manage your projects.
+
+
+
+## Screenshots
 
 ![Windows](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/windows.png "window")
 
-### text_browser()
-
-Window to browse a text.
-
-#### Usage
-
-```python
-cur_tools.text_browser(screen, title, txt)
-```
-
-
-* screen: Curses's screen object
-* title: Window's title.
-* txt: Text to be displayed.
-
-#### Screnshots
 
 ![Demo](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/text_browser.gif "demo")
 
 
-### menu_bar()
-
-It creates a horizontal menu bar.
-
-#### Screnshots
-
 ![Menu](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/static_menu01.png "Menu bar")
-
-with submenus
 
 ![Menu](https://raw.githubusercontent.com/pabloniklas/pyCursesMenu/main/screenshots/static_menu02.png "Submenu")
 
-#### Usage
+## Contributing
 
-```python
-ops = {
-    "Menu Option 1": [
-        ["Submenu option 1", "Submenu option 1 status bar help"],
-        ["Submenu option 2", "Submenu option 2 status bar help"]
-    ],
-    "Menu Option 2": [
-        ["Submenu option 3" "Submenu option 1 status bar help"]
-    ]
-}
+Contributions are welcome. To collaborate:
 
-user_choice = cur_tools.menu_bar(screen, myops)
+1. Fork the repository.
+
+2. Create a branch for your feature or fix:
+```
+git checkout -b my-new-feature
+```
+3. Make your changes and commit them:
+
+```
+git commit -m "Add a new feature"
 ```
 
-* screen: Curses's screen object
-* myops: Data Structure for the options.
+4. Submit a pull request.
 
-#### Examples
-
-```python
-import curses
-from src.cur_tools import cur_tools
-import sys
-
-
-def myapp(scr: curses.window):
-    """Main Function
-
-    Args:
-        scr (curses): Screen curses object.
-    """
-    s = cur_tools.curses_init(scr)
-
-    myops = {
-        "File": [
-            ["Exit", "Exit this demo."]
-        ],
-        "Demos": [
-            ["Browse", "Text browsing demo."],
-            ["Forms", "Forms demo."],
-            ["Demo 3", "Demo 3"]
-        ],
-        "Help": [
-            ["About", "About this app."]
-        ]
-    }
-
-    cur_tools.status_bar(s, "Press Enter or ALT+KEY to start the demo.")
-    m, mm = cur_tools.menu_bar(s, myops)
-
-    while m != 1 or mm != 1:  # File->Exit
-
-        cur_tools.status_bar(s, f'Option: ({m} , {mm})')
-
-        # Option branch.
-        if m == 2 and mm == 1:
-            file = "sample.txt"
-            try:
-                file = open(file)
-            except FileNotFoundError:
-                cur_tools.error_win(s, f"File '{file}' not found")
-            else:
-                line = file.read().replace("\n", " ")
-                cur_tools.text_browser(s, "Browsing demo", line)
-                file.close()
-        elif m == 2 and mm == 2:
-            w = cur_tools.init_win(15, 50, 5, 5, "Form Demo")
-            data = cur_tools.simple_input_text_field(s, w, 3, 3, "Nombre", 20, "Text input demo.")
-            cur_tools.info_win(w, data)
-            cur_tools.end_win(w)
-
-        else:
-            cur_tools.info_win(s, ":: Men at work ::")
-
-        m, mm = cur_tools.menu_bar(s, myops)
-
-
-# Python's entry point
-if __name__ == '__main__':
-    curses.wrapper(myapp)
-```
 
 ## License
 
-MIT
+This project is licensed under the MIT License.
+
+## Contact
+
+If you have questions, suggestions, or issues, feel free to open an issue or contact the author.
+
+Explore cur_tools and take your productivity to the next level!
+
 
