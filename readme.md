@@ -12,25 +12,18 @@ cur_tools is a development tools suite inspired by the look & feel of the classi
 
 ## Key Features
 
-* Retro interface: Intuitive interface with nostalgic elements of the Turbo C environment.
-
-* Highly configurable: Customize colors, keyboard shortcuts, and behavior to suit your workflow.
-
-* Multi-language support: Designed to facilitate tasks in various programming languages.
-
-* Modularity: Includes a set of independent tools that can be used separately or together.
-
-* Portability: Compatible with UNIX-based systems and Windows.
+- Retro interface: Intuitive interface with nostalgic elements of the Turbo C environment.
+- Highly configurable: Customize colors, keyboard shortcuts, and behavior to suit your workflow.
+- Multi-language support: Designed to facilitate tasks in various programming languages.
+- Modularity: Includes a set of independent tools that can be used separately or together.
+- Portability: Compatible with UNIX-based systems and Windows.
 
 ## Requirements
 
-* Python: Version 3.8 or higher.
-
-* Additional dependencies:
-
-  * curses (included in Python's standard library on UNIX).
-
-  * For Windows systems, you need to install windows-curses:
+- Python: Version 3.8 or higher.
+- Additional dependencies:
+  - curses (included in Python's standard library on UNIX).
+  - For Windows systems, you need to install windows-curses:
 
 ```
 pip install windows-curses
@@ -61,10 +54,8 @@ When you launch cur_tools, you will see a terminal-based interface with various 
 
 ### Explore modules such as:
 
-* Text editor: Fast and efficient editing of source files.
-
-* File explorer: Navigate directories and manage your projects.
-
+- Text editor: Fast and efficient editing of source files.
+- File explorer: Navigate directories and manage your projects.
 
 
 ## Screenshots
@@ -86,9 +77,11 @@ Contributions are welcome. To collaborate:
 1. Fork the repository.
 
 2. Create a branch for your feature or fix:
+
 ```
 git checkout -b my-new-feature
 ```
+
 3. Make your changes and commit them:
 
 ```
@@ -97,14 +90,13 @@ git commit -m "Add a new feature"
 
 4. Submit a pull request.
 
-
 ## License
 
 This project is licensed under the MIT License.
 
 ## Contact
 
-If you have questions, suggestions, or issues, feel free to open an [[https://github.com/pabloniklas/cur_tools/issues|issue]] or contact the author.
+If you have questions, suggestions, or issues, feel free to open an [issue](https://github.com/pabloniklas/cur_tools/issues|) or contact the author.
 
 Explore cur_tools and take your productivity to the next level!
 
