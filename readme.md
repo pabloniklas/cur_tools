@@ -104,7 +104,7 @@ This project is licensed under the MIT License.
 
 ## Contact
 
-If you have questions, suggestions, or issues, feel free to open an issue or contact the author.
+If you have questions, suggestions, or issues, feel free to open an [[https://github.com/pabloniklas/cur_tools/issues|issue]] or contact the author.
 
 Explore cur_tools and take your productivity to the next level!
 
